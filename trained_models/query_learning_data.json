@@ -1,0 +1,464 @@
+[
+  {
+    "query": "update jira OCPQE-30241 TO_DO",
+    "response": "I'll help you update the status of Jira issue OCPQE-30241 to TO_DO. The issue status has been updated successfully.",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:39:49.621076",
+    "metadata": {}
+  },
+  {
+    "query": "add comment to jira OCPQE-30241 working on it",
+    "response": "I'll add a comment to Jira issue OCPQE-30241. The comment 'working on it' has been added successfully.",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:39:49.621481",
+    "metadata": {}
+  },
+  {
+    "query": "what's the status of OCPQE-30241?",
+    "response": "The status of OCPQE-30241 is: To Do",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:39:49.621613",
+    "metadata": {}
+  },
+  {
+    "query": "who is working on OCPQE-30241?",
+    "response": "OCPQE-30241 is assigned to: Rahul Gangwar",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:39:49.621753",
+    "metadata": {}
+  },
+  {
+    "query": "blocked issues in OCPQE",
+    "response": "Found 0 Blocked issues in OCPQE project",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:39:49.621848",
+    "metadata": {}
+  },
+  {
+    "query": "critical bugs in OCPBUGS",
+    "response": "Found 5 Critical priority issues in OCPBUGS project",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:39:49.621948",
+    "metadata": {}
+  },
+  {
+    "query": "story points in current sprint",
+    "response": "Current Sprint Story Points: 45 points across 12 issues",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:39:49.622038",
+    "metadata": {}
+  },
+  {
+    "query": "my open Jira tickets",
+    "response": "Found 8 open Jira tickets assigned to you",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:39:49.622134",
+    "metadata": {}
+  },
+  {
+    "query": "issues due this week",
+    "response": "Found 3 issues due this week in your projects",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:39:49.622230",
+    "metadata": {}
+  },
+  {
+    "query": "assign OCPQE-30241 to John",
+    "response": "I'll assign Jira issue OCPQE-30241 to John. The assignment has been updated successfully.",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:39:49.622332",
+    "metadata": {}
+  },
+  {
+    "query": "review PR #123 for security issues",
+    "response": "I'll review PR #123 for security vulnerabilities. Here's my analysis with specific recommendations.",
+    "category": "github_queries",
+    "timestamp": "2025-07-23T11:39:49.622433",
+    "metadata": {}
+  },
+  {
+    "query": "create a new branch for feature X",
+    "response": "I'll help you create a new branch for feature X. Here are the Git commands to execute.",
+    "category": "github_queries",
+    "timestamp": "2025-07-23T11:39:49.622534",
+    "metadata": {}
+  },
+  {
+    "query": "merge conflicts in PR #456",
+    "response": "I'll help you resolve merge conflicts in PR #456. Here's how to handle the conflicts.",
+    "category": "github_queries",
+    "timestamp": "2025-07-23T11:39:49.622827",
+    "metadata": {}
+  },
+  {
+    "query": "deploy to staging environment",
+    "response": "I'll help you deploy the current branch to the staging environment. Here are the deployment steps.",
+    "category": "github_queries",
+    "timestamp": "2025-07-23T11:39:49.622990",
+    "metadata": {}
+  },
+  {
+    "query": "check build status",
+    "response": "I'll check the current build status for you. Here's the latest build information.",
+    "category": "github_queries",
+    "timestamp": "2025-07-23T11:39:49.623111",
+    "metadata": {}
+  },
+  {
+    "query": "pods stuck in pending state",
+    "response": "I'll help you troubleshoot pods stuck in pending state. Here are the diagnostic commands and solutions.",
+    "category": "openshift_queries",
+    "timestamp": "2025-07-23T11:39:49.623226",
+    "metadata": {}
+  },
+  {
+    "query": "check cluster health",
+    "response": "I'll check the overall health of your OpenShift cluster. Here are the health status indicators.",
+    "category": "openshift_queries",
+    "timestamp": "2025-07-23T11:39:49.623340",
+    "metadata": {}
+  },
+  {
+    "query": "scale deployment to 5 replicas",
+    "response": "I'll help you scale the deployment to 5 replicas. Here's the kubectl command to execute.",
+    "category": "openshift_queries",
+    "timestamp": "2025-07-23T11:39:49.623464",
+    "metadata": {}
+  },
+  {
+    "query": "check node resources",
+    "response": "I'll check the resource usage across all nodes in your cluster. Here's the current resource status.",
+    "category": "openshift_queries",
+    "timestamp": "2025-07-23T11:39:49.623587",
+    "metadata": {}
+  },
+  {
+    "query": "troubleshoot service connectivity",
+    "response": "I'll help you troubleshoot service connectivity issues. Here are the diagnostic steps and commands.",
+    "category": "openshift_queries",
+    "timestamp": "2025-07-23T11:39:49.623710",
+    "metadata": {}
+  },
+  {
+    "query": "compose email to team about meeting",
+    "response": "I'll help you compose a professional email to your team about the meeting. Here's a draft email.",
+    "category": "email_queries",
+    "timestamp": "2025-07-23T11:39:49.623848",
+    "metadata": {}
+  },
+  {
+    "query": "find emails from John this week",
+    "response": "I'll search for emails from John sent this week. Here are the matching emails.",
+    "category": "email_queries",
+    "timestamp": "2025-07-23T11:39:49.623978",
+    "metadata": {}
+  },
+  {
+    "query": "schedule meeting for next Tuesday",
+    "response": "I'll help you schedule a meeting for next Tuesday. Here's the calendar invitation.",
+    "category": "email_queries",
+    "timestamp": "2025-07-23T11:39:49.624107",
+    "metadata": {}
+  },
+  {
+    "query": "summarize recent emails",
+    "response": "I'll summarize your recent emails and highlight the key points and action items.",
+    "category": "email_queries",
+    "timestamp": "2025-07-23T11:39:49.624242",
+    "metadata": {}
+  },
+  {
+    "query": "send follow-up email",
+    "response": "I'll help you compose a follow-up email. Here's a professional follow-up message.",
+    "category": "email_queries",
+    "timestamp": "2025-07-23T11:39:49.624378",
+    "metadata": {}
+  },
+  {
+    "query": "update jira OCPQE-30241 TO_DO",
+    "response": "I'll help you update the status of Jira issue OCPQE-30241 to TO_DO. The issue status has been updated successfully.",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:44:26.620170",
+    "metadata": {}
+  },
+  {
+    "query": "add comment to jira OCPQE-30241 working on it",
+    "response": "I'll add a comment to Jira issue OCPQE-30241. The comment 'working on it' has been added successfully.",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:44:26.620495",
+    "metadata": {}
+  },
+  {
+    "query": "what's the status of OCPQE-30241?",
+    "response": "The status of OCPQE-30241 is: To Do",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:44:26.620698",
+    "metadata": {}
+  },
+  {
+    "query": "who is working on OCPQE-30241?",
+    "response": "OCPQE-30241 is assigned to: Rahul Gangwar",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:44:26.620876",
+    "metadata": {}
+  },
+  {
+    "query": "blocked issues in OCPQE",
+    "response": "Found 0 Blocked issues in OCPQE project",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:44:26.621051",
+    "metadata": {}
+  },
+  {
+    "query": "critical bugs in OCPBUGS",
+    "response": "Found 5 Critical priority issues in OCPBUGS project",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:44:26.621339",
+    "metadata": {}
+  },
+  {
+    "query": "story points in current sprint",
+    "response": "Current Sprint Story Points: 45 points across 12 issues",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:44:26.621520",
+    "metadata": {}
+  },
+  {
+    "query": "my open Jira tickets",
+    "response": "Found 8 open Jira tickets assigned to you",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:44:26.621811",
+    "metadata": {}
+  },
+  {
+    "query": "issues due this week",
+    "response": "Found 3 issues due this week in your projects",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:44:26.622144",
+    "metadata": {}
+  },
+  {
+    "query": "assign OCPQE-30241 to John",
+    "response": "I'll assign Jira issue OCPQE-30241 to John. The assignment has been updated successfully.",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T11:44:26.622382",
+    "metadata": {}
+  },
+  {
+    "query": "review PR #123 for security issues",
+    "response": "I'll review PR #123 for security vulnerabilities. Here's my analysis with specific recommendations.",
+    "category": "github_queries",
+    "timestamp": "2025-07-23T11:44:26.622619",
+    "metadata": {}
+  },
+  {
+    "query": "create a new branch for feature X",
+    "response": "I'll help you create a new branch for feature X. Here are the Git commands to execute.",
+    "category": "github_queries",
+    "timestamp": "2025-07-23T11:44:26.622899",
+    "metadata": {}
+  },
+  {
+    "query": "merge conflicts in PR #456",
+    "response": "I'll help you resolve merge conflicts in PR #456. Here's how to handle the conflicts.",
+    "category": "github_queries",
+    "timestamp": "2025-07-23T11:44:26.623130",
+    "metadata": {}
+  },
+  {
+    "query": "deploy to staging environment",
+    "response": "I'll help you deploy the current branch to the staging environment. Here are the deployment steps.",
+    "category": "github_queries",
+    "timestamp": "2025-07-23T11:44:26.623374",
+    "metadata": {}
+  },
+  {
+    "query": "check build status",
+    "response": "I'll check the current build status for you. Here's the latest build information.",
+    "category": "github_queries",
+    "timestamp": "2025-07-23T11:44:26.623618",
+    "metadata": {}
+  },
+  {
+    "query": "pods stuck in pending state",
+    "response": "I'll help you troubleshoot pods stuck in pending state. Here are the diagnostic commands and solutions.",
+    "category": "openshift_queries",
+    "timestamp": "2025-07-23T11:44:26.623858",
+    "metadata": {}
+  },
+  {
+    "query": "check cluster health",
+    "response": "I'll check the overall health of your OpenShift cluster. Here are the health status indicators.",
+    "category": "openshift_queries",
+    "timestamp": "2025-07-23T11:44:26.624098",
+    "metadata": {}
+  },
+  {
+    "query": "scale deployment to 5 replicas",
+    "response": "I'll help you scale the deployment to 5 replicas. Here's the kubectl command to execute.",
+    "category": "openshift_queries",
+    "timestamp": "2025-07-23T11:44:26.624345",
+    "metadata": {}
+  },
+  {
+    "query": "check node resources",
+    "response": "I'll check the resource usage across all nodes in your cluster. Here's the current resource status.",
+    "category": "openshift_queries",
+    "timestamp": "2025-07-23T11:44:26.624686",
+    "metadata": {}
+  },
+  {
+    "query": "troubleshoot service connectivity",
+    "response": "I'll help you troubleshoot service connectivity issues. Here are the diagnostic steps and commands.",
+    "category": "openshift_queries",
+    "timestamp": "2025-07-23T11:44:26.624993",
+    "metadata": {}
+  },
+  {
+    "query": "compose email to team about meeting",
+    "response": "I'll help you compose a professional email to your team about the meeting. Here's a draft email.",
+    "category": "email_queries",
+    "timestamp": "2025-07-23T11:44:26.625268",
+    "metadata": {}
+  },
+  {
+    "query": "find emails from John this week",
+    "response": "I'll search for emails from John sent this week. Here are the matching emails.",
+    "category": "email_queries",
+    "timestamp": "2025-07-23T11:44:26.625546",
+    "metadata": {}
+  },
+  {
+    "query": "schedule meeting for next Tuesday",
+    "response": "I'll help you schedule a meeting for next Tuesday. Here's the calendar invitation.",
+    "category": "email_queries",
+    "timestamp": "2025-07-23T11:44:26.625833",
+    "metadata": {}
+  },
+  {
+    "query": "summarize recent emails",
+    "response": "I'll summarize your recent emails and highlight the key points and action items.",
+    "category": "email_queries",
+    "timestamp": "2025-07-23T11:44:26.626503",
+    "metadata": {}
+  },
+  {
+    "query": "send follow-up email",
+    "response": "I'll help you compose a follow-up email. Here's a professional follow-up message.",
+    "category": "email_queries",
+    "timestamp": "2025-07-23T11:44:26.626861",
+    "metadata": {}
+  },
+  {
+    "query": "fetch my ON_QA jira issues",
+    "response": "I've searched for your ON_QA Jira issues. Currently, you don't have any issues assigned to you with ON_QA status. This could mean:\n\n\u2022 All your issues have moved to other statuses\n\u2022 You don't have any issues currently in QA testing\n\u2022 The issues might be assigned to someone else\n\nWould you like me to check other statuses like 'In Progress' or 'To Do'?",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:18:24.648744",
+    "metadata": {}
+  },
+  {
+    "query": "show my ON_QA tickets",
+    "response": "I've checked for your ON_QA tickets. You currently don't have any issues with ON_QA status assigned to you. This is normal if:\n\n\u2022 Your issues are still in development\n\u2022 They've been moved to other statuses\n\u2022 You don't have any issues in QA testing phase\n\nLet me know if you'd like to check other statuses or create a new issue!",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:18:24.649104",
+    "metadata": {}
+  },
+  {
+    "query": "get ON_QA issues assigned to me",
+    "response": "I've searched for ON_QA issues assigned to you. No issues found with ON_QA status. This could indicate:\n\n\u2022 Your issues are still in development phase\n\u2022 They've progressed to other statuses\n\u2022 You don't currently have any issues in QA\n\nWould you like me to check your issues in other statuses like 'In Progress' or 'To Do'?",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:18:24.649365",
+    "metadata": {}
+  },
+  {
+    "query": "my ON_QA jira tickets",
+    "response": "I've looked for your ON_QA Jira tickets. You don't have any issues currently in ON_QA status. This might mean:\n\n\u2022 Your issues are still being worked on\n\u2022 They've moved to different statuses\n\u2022 You don't have any issues in QA testing\n\nI can help you check other statuses or create new issues if needed!",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:18:24.649631",
+    "metadata": {}
+  },
+  {
+    "query": "fetch my assigned jira issues",
+    "response": "I've searched for your assigned Jira issues. Currently, you don't have any issues assigned to you. This could mean:\n\n\u2022 All your issues have been completed\n\u2022 Issues have been reassigned\n\u2022 You don't have any active assignments\n\nWould you like me to check for issues you've created or help you create a new issue?",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:18:24.649885",
+    "metadata": {}
+  },
+  {
+    "query": "show my open jira issues",
+    "response": "I've checked for your open Jira issues. You don't have any open issues currently assigned to you. This could indicate:\n\n\u2022 All your issues have been resolved\n\u2022 Issues have been moved to other statuses\n\u2022 You don't have any active assignments\n\nI can help you create a new issue or check for issues in specific statuses!",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:18:24.650157",
+    "metadata": {}
+  },
+  {
+    "query": "list my jira tickets",
+    "response": "I've searched for your Jira tickets. You don't have any tickets currently assigned to you. This might mean:\n\n\u2022 All your tickets have been completed\n\u2022 Tickets have been reassigned to others\n\u2022 You don't have any active assignments\n\nWould you like me to help you create a new ticket or check for tickets in specific projects?",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:18:24.650431",
+    "metadata": {}
+  },
+  {
+    "query": "my jira issues",
+    "response": "I've looked for your Jira issues. You don't have any issues currently assigned to you. This could mean:\n\n\u2022 All your issues have been resolved\n\u2022 Issues have been reassigned\n\u2022 You don't have any active assignments\n\nI can help you create a new issue or search for issues in specific projects or statuses!",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:18:24.650709",
+    "metadata": {}
+  },
+  {
+    "query": "fetch my ON_QA jira issues",
+    "response": "I've searched for your ON_QA Jira issues. Currently, you don't have any issues assigned to you with ON_QA status. This could mean:\n\n\u2022 All your issues have moved to other statuses\n\u2022 You don't have any issues currently in QA testing\n\u2022 The issues might be assigned to someone else\n\nWould you like me to check other statuses like 'In Progress' or 'To Do'?",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:21:45.506733",
+    "metadata": {}
+  },
+  {
+    "query": "show my ON_QA tickets",
+    "response": "I've checked for your ON_QA tickets. You currently don't have any issues with ON_QA status assigned to you. This is normal if:\n\n\u2022 Your issues are still in development\n\u2022 They've been moved to other statuses\n\u2022 You don't have any issues in QA testing phase\n\nLet me know if you'd like to check other statuses or create a new issue!",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:21:45.507191",
+    "metadata": {}
+  },
+  {
+    "query": "get ON_QA issues assigned to me",
+    "response": "I've searched for ON_QA issues assigned to you. No issues found with ON_QA status. This could indicate:\n\n\u2022 Your issues are still in development phase\n\u2022 They've progressed to other statuses\n\u2022 You don't currently have any issues in QA\n\nWould you like me to check your issues in other statuses like 'In Progress' or 'To Do'?",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:21:45.507708",
+    "metadata": {}
+  },
+  {
+    "query": "my ON_QA jira tickets",
+    "response": "I've looked for your ON_QA Jira tickets. You don't have any issues currently in ON_QA status. This might mean:\n\n\u2022 Your issues are still being worked on\n\u2022 They've moved to different statuses\n\u2022 You don't have any issues in QA testing\n\nI can help you check other statuses or create new issues if needed!",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:21:45.507982",
+    "metadata": {}
+  },
+  {
+    "query": "fetch my assigned jira issues",
+    "response": "I've searched for your assigned Jira issues. Currently, you don't have any issues assigned to you. This could mean:\n\n\u2022 All your issues have been completed\n\u2022 Issues have been reassigned\n\u2022 You don't have any active assignments\n\nWould you like me to check for issues you've created or help you create a new issue?",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:21:45.508305",
+    "metadata": {}
+  },
+  {
+    "query": "show my open jira issues",
+    "response": "I've checked for your open Jira issues. You don't have any open issues currently assigned to you. This could indicate:\n\n\u2022 All your issues have been resolved\n\u2022 Issues have been moved to other statuses\n\u2022 You don't have any active assignments\n\nI can help you create a new issue or check for issues in specific statuses!",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:21:45.508588",
+    "metadata": {}
+  },
+  {
+    "query": "list my jira tickets",
+    "response": "I've searched for your Jira tickets. You don't have any tickets currently assigned to you. This might mean:\n\n\u2022 All your tickets have been completed\n\u2022 Tickets have been reassigned to others\n\u2022 You don't have any active assignments\n\nWould you like me to help you create a new ticket or check for tickets in specific projects?",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:21:45.508865",
+    "metadata": {}
+  },
+  {
+    "query": "my jira issues",
+    "response": "I've looked for your Jira issues. You don't have any issues currently assigned to you. This could mean:\n\n\u2022 All your issues have been resolved\n\u2022 Issues have been reassigned\n\u2022 You don't have any active assignments\n\nI can help you create a new issue or search for issues in specific projects or statuses!",
+    "category": "jira_queries",
+    "timestamp": "2025-07-23T12:21:45.509151",
+    "metadata": {}
+  }
+]

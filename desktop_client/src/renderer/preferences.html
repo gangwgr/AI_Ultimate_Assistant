@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant Preferences</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-button.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-lg">
+        <!-- Header -->
+        <div class="p-6 border-b">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-semibold text-gray-800">
+                    <i class="fas fa-cog text-blue-500 mr-2"></i>Preferences
+                </h1>
+                <span id="app-version" class="text-sm text-gray-500"></span>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex border-b">
+            <button class="tab-button active flex-1 py-3 px-4 text-center text-sm font-medium text-gray-700 hover:text-blue-600" data-tab="general">
+                <i class="fas fa-sliders-h mr-1"></i>General
+            </button>
+            <button class="tab-button flex-1 py-3 px-4 text-center text-sm font-medium text-gray-700 hover:text-blue-600" data-tab="voice">
+                <i class="fas fa-microphone mr-1"></i>Voice
+            </button>
+            <button class="tab-button flex-1 py-3 px-4 text-center text-sm font-medium text-gray-700 hover:text-blue-600" data-tab="desktop">
+                <i class="fas fa-desktop mr-1"></i>Desktop
+            </button>
+        </div>
+
+        <!-- Tab Contents -->
+        <div class="p-6">
+            <!-- General Tab -->
+            <div class="tab-content active" id="general-tab">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">General Settings</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Backend Server URL</label>
+                        <input type="url" id="backend-url" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://localhost:8443">
+                        <p class="text-xs text-gray-500 mt-1">The URL where your AI Assistant backend is running</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Theme</label>
+                        <select id="theme" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="auto">Auto (System)</option>
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                        <select id="language" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="en-US">English (US)</option>
+                            <option value="en-GB">English (UK)</option>
+                            <option value="es-ES">Spanish</option>
+                            <option value="fr-FR">French</option>
+                            <option value="de-DE">German</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice Tab -->
+            <div class="tab-content" id="voice-tab">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Voice Settings</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Speech Rate</label>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-sm text-gray-500">Slow</span>
+                            <input type="range" id="pref-speech-rate" min="0.5" max="2" step="0.1" value="1" class="flex-1">
+                            <span class="text-sm text-gray-500">Fast</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">Current: <span id="pref-rate-value">1.0</span></div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Speech Pitch</label>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-sm text-gray-500">Low</span>
+                            <input type="range" id="pref-speech-pitch" min="0" max="2" step="0.1" value="1" class="flex-1">
+                            <span class="text-sm text-gray-500">High</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">Current: <span id="pref-pitch-value">1.0</span></div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Speech Volume</label>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-sm text-gray-500">Quiet</span>
+                            <input type="range" id="pref-speech-volume" min="0" max="1" step="0.1" value="0.8" class="flex-1">
+                            <span class="text-sm text-gray-500">Loud</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">Current: <span id="pref-volume-value">0.8</span></div>
+                    </div>
+                    
+                    <div class="pt-3 border-t">
+                        <button id="test-voice-btn" class="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-volume-up mr-2"></i>Test Voice Settings
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">Enable Voice Commands</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="voice-commands" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desktop Tab -->
+            <div class="tab-content" id="desktop-tab">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Desktop Settings</h3>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">Launch at startup</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="auto-launch" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">Minimize to system tray</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="minimize-to-tray" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">Close to system tray</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="close-to-tray" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">Enable notifications</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="enable-notifications" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">Auto-hide menu bar</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="auto-hide-menu" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="pt-3 border-t space-y-2">
+                        <button id="reset-settings-btn" class="w-full px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors">
+                            <i class="fas fa-undo mr-2"></i>Reset to Defaults
+                        </button>
+                        <button id="export-settings-btn" class="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">
+                            <i class="fas fa-download mr-2"></i>Export Settings
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-3 bg-gray-50 border-t flex justify-between items-center">
+            <div class="text-xs text-gray-500">
+                Changes are saved automatically
+            </div>
+            <div class="flex space-x-2">
+                <button id="cancel-btn" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
+                <button id="apply-btn" class="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class PreferencesManager {
+            constructor() {
+                this.init();
+            }
+            
+            async init() {
+                this.setupTabNavigation();
+                this.setupEventListeners();
+                await this.loadSettings();
+                await this.loadAppVersion();
+            }
+            
+            setupTabNavigation() {
+                const tabButtons = document.querySelectorAll('.tab-button');
+                const tabContents = document.querySelectorAll('.tab-content');
+                
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const targetTab = button.getAttribute('data-tab');
+                        
+                        // Update button states
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                        
+                        // Update content visibility
+                        tabContents.forEach(content => {
+                            content.classList.remove('active');
+                        });
+                        document.getElementById(`${targetTab}-tab`).classList.add('active');
+                    });
+                });
+            }
+            
+            setupEventListeners() {
+                // Voice settings
+                document.getElementById('pref-speech-rate').addEventListener('input', () => this.updateVoiceSettings());
+                document.getElementById('pref-speech-pitch').addEventListener('input', () => this.updateVoiceSettings());
+                document.getElementById('pref-speech-volume').addEventListener('input', () => this.updateVoiceSettings());
+                document.getElementById('test-voice-btn').addEventListener('click', () => this.testVoice());
+                
+                // Settings changes
+                document.getElementById('backend-url').addEventListener('change', () => this.saveSettings());
+                document.getElementById('theme').addEventListener('change', () => this.saveSettings());
+                document.getElementById('language').addEventListener('change', () => this.saveSettings());
+                document.getElementById('voice-commands').addEventListener('change', () => this.saveSettings());
+                document.getElementById('auto-launch').addEventListener('change', () => this.saveSettings());
+                document.getElementById('minimize-to-tray').addEventListener('change', () => this.saveSettings());
+                document.getElementById('close-to-tray').addEventListener('change', () => this.saveSettings());
+                document.getElementById('enable-notifications').addEventListener('change', () => this.saveSettings());
+                document.getElementById('auto-hide-menu').addEventListener('change', () => this.saveSettings());
+                
+                // Buttons
+                document.getElementById('reset-settings-btn').addEventListener('click', () => this.resetSettings());
+                document.getElementById('export-settings-btn').addEventListener('click', () => this.exportSettings());
+                document.getElementById('cancel-btn').addEventListener('click', () => this.close());
+                document.getElementById('apply-btn').addEventListener('click', () => this.applyAndClose());
+            }
+            
+            async loadAppVersion() {
+                if (window.electronAPI) {
+                    try {
+                        const version = await window.electronAPI.getAppVersion();
+                        document.getElementById('app-version').textContent = `v${version}`;
+                    } catch (error) {
+                        console.error('Error loading app version:', error);
+                    }
+                }
+            }
+            
+            async loadSettings() {
+                if (window.electronAPI) {
+                    try {
+                        // Load all settings
+                        document.getElementById('backend-url').value = await window.electronAPI.getStoreValue('backendUrl', 'https://localhost:8443');
+                        document.getElementById('theme').value = await window.electronAPI.getStoreValue('theme', 'auto');
+                        document.getElementById('language').value = await window.electronAPI.getStoreValue('language', 'en-US');
+                        
+                        document.getElementById('pref-speech-rate').value = await window.electronAPI.getStoreValue('speechRate', 1.0);
+                        document.getElementById('pref-speech-pitch').value = await window.electronAPI.getStoreValue('speechPitch', 1.0);
+                        document.getElementById('pref-speech-volume').value = await window.electronAPI.getStoreValue('speechVolume', 0.8);
+                        document.getElementById('voice-commands').checked = await window.electronAPI.getStoreValue('voiceCommands', true);
+                        
+                        document.getElementById('auto-launch').checked = await window.electronAPI.getStoreValue('autoLaunch', false);
+                        document.getElementById('minimize-to-tray').checked = await window.electronAPI.getStoreValue('minimizeToTray', true);
+                        document.getElementById('close-to-tray').checked = await window.electronAPI.getStoreValue('closeToTray', true);
+                        document.getElementById('enable-notifications').checked = await window.electronAPI.getStoreValue('enableNotifications', true);
+                        document.getElementById('auto-hide-menu').checked = await window.electronAPI.getStoreValue('autoHideMenuBar', false);
+                        
+                        this.updateVoiceSettings();
+                    } catch (error) {
+                        console.error('Error loading settings:', error);
+                    }
+                }
+            }
+            
+            async saveSettings() {
+                if (window.electronAPI) {
+                    try {
+                        await window.electronAPI.setStoreValue('backendUrl', document.getElementById('backend-url').value);
+                        await window.electronAPI.setStoreValue('theme', document.getElementById('theme').value);
+                        await window.electronAPI.setStoreValue('language', document.getElementById('language').value);
+                        
+                        await window.electronAPI.setStoreValue('speechRate', parseFloat(document.getElementById('pref-speech-rate').value));
+                        await window.electronAPI.setStoreValue('speechPitch', parseFloat(document.getElementById('pref-speech-pitch').value));
+                        await window.electronAPI.setStoreValue('speechVolume', parseFloat(document.getElementById('pref-speech-volume').value));
+                        await window.electronAPI.setStoreValue('voiceCommands', document.getElementById('voice-commands').checked);
+                        
+                        await window.electronAPI.setStoreValue('autoLaunch', document.getElementById('auto-launch').checked);
+                        await window.electronAPI.setStoreValue('minimizeToTray', document.getElementById('minimize-to-tray').checked);
+                        await window.electronAPI.setStoreValue('closeToTray', document.getElementById('close-to-tray').checked);
+                        await window.electronAPI.setStoreValue('enableNotifications', document.getElementById('enable-notifications').checked);
+                        await window.electronAPI.setStoreValue('autoHideMenuBar', document.getElementById('auto-hide-menu').checked);
+                    } catch (error) {
+                        console.error('Error saving settings:', error);
+                    }
+                }
+            }
+            
+            updateVoiceSettings() {
+                const rate = document.getElementById('pref-speech-rate').value;
+                const pitch = document.getElementById('pref-speech-pitch').value;
+                const volume = document.getElementById('pref-speech-volume').value;
+                
+                document.getElementById('pref-rate-value').textContent = parseFloat(rate).toFixed(1);
+                document.getElementById('pref-pitch-value').textContent = parseFloat(pitch).toFixed(1);
+                document.getElementById('pref-volume-value').textContent = parseFloat(volume).toFixed(1);
+                
+                this.saveSettings();
+            }
+            
+            testVoice() {
+                const rate = parseFloat(document.getElementById('pref-speech-rate').value);
+                const pitch = parseFloat(document.getElementById('pref-speech-pitch').value);
+                const volume = parseFloat(document.getElementById('pref-speech-volume').value);
+                
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                    
+                    const utterance = new SpeechSynthesisUtterance('This is a test of your voice settings. How do I sound?');
+                    utterance.rate = rate;
+                    utterance.pitch = pitch;
+                    utterance.volume = volume;
+                    
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
+            
+            async resetSettings() {
+                const confirmed = await window.electronAPI.showMessageBox({
+                    type: 'question',
+                    title: 'Reset Settings',
+                    message: 'Are you sure you want to reset all settings to their defaults?',
+                    buttons: ['Cancel', 'Reset'],
+                    defaultId: 0,
+                    cancelId: 0
+                });
+                
+                if (confirmed.response === 1) {
+                    // Reset to defaults
+                    document.getElementById('backend-url').value = 'https://localhost:8443';
+                    document.getElementById('theme').value = 'auto';
+                    document.getElementById('language').value = 'en-US';
+                    document.getElementById('pref-speech-rate').value = 1.0;
+                    document.getElementById('pref-speech-pitch').value = 1.0;
+                    document.getElementById('pref-speech-volume').value = 0.8;
+                    document.getElementById('voice-commands').checked = true;
+                    document.getElementById('auto-launch').checked = false;
+                    document.getElementById('minimize-to-tray').checked = true;
+                    document.getElementById('close-to-tray').checked = true;
+                    document.getElementById('enable-notifications').checked = true;
+                    document.getElementById('auto-hide-menu').checked = false;
+                    
+                    this.updateVoiceSettings();
+                    await this.saveSettings();
+                }
+            }
+            
+            async exportSettings() {
+                // This would export settings to a file
+                console.log('Exporting settings...');
+            }
+            
+            close() {
+                window.close();
+            }
+            
+            applyAndClose() {
+                this.saveSettings().then(() => {
+                    this.close();
+                });
+            }
+        }
+        
+        // Initialize preferences when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PreferencesManager();
+        });
+    </script>
+</body>
+</html> 

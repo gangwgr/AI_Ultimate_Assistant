@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI PR Reviewer - AI Ultimate Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .code-block {
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .review-card {
+            transition: all 0.3s ease;
+        }
+        .review-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .severity-critical { border-left: 4px solid #ef4444; }
+        .severity-high { border-left: 4px solid #f97316; }
+        .severity-medium { border-left: 4px solid #eab308; }
+        .severity-low { border-left: 4px solid #22c55e; }
+        .severity-info { border-left: 4px solid #3b82f6; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-code-branch text-2xl text-purple-600"></i>
+                    <h1 class="text-xl font-semibold text-gray-900">AI PR Reviewer</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/frontend/index.html" class="text-gray-600 hover:text-gray-900">
+                        <i class="fas fa-home mr-2"></i>Home
+                    </a>
+                    <a href="/frontend/model_trainer.html" class="text-gray-600 hover:text-gray-900">
+                        <i class="fas fa-brain mr-2"></i>Model Trainer
+                    </a>
+                    <div id="github-status" class="flex items-center">
+                        <div class="loading-spinner mr-2"></div>
+                        <span class="text-sm text-gray-500">Checking GitHub...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Quick Review Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-6">
+                <i class="fas fa-robot text-blue-500 mr-2"></i>Quick PR Review
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- URL Input -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">GitHub PR URL</label>
+                    <div class="flex gap-2">
+                        <input type="url" id="pr-url" 
+                               placeholder="https://github.com/owner/repo/pull/123"
+                               class="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <button id="review-by-url" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            <i class="fas fa-search mr-2"></i>Review
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Paste any GitHub PR URL to start reviewing</p>
+                </div>
+
+                <!-- Manual Input -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Manual Input</label>
+                    <div class="grid grid-cols-12 gap-2">
+                        <input type="text" id="owner" placeholder="owner" 
+                               class="col-span-3 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <input type="text" id="repo" placeholder="repo" 
+                               class="col-span-4 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <input type="number" id="pr-number" placeholder="123" 
+                               class="col-span-3 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <button id="review-manual" class="col-span-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Options -->
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h3 class="text-sm font-medium text-gray-700 mb-3">Review Options</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">AI Model</label>
+                        <select id="model-preference" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+                            <option value="ollama">🏠 Local Models (Auto-Select) - Private & Fast</option>
+                            <option value="claude">🧠 Claude (Anthropic) - Code Expert</option>
+                            <option value="gemini">🔍 Gemini (Google) - Advanced</option>
+                            <option value="openai">🧠 OpenAI GPT - High Quality</option>
+                            <option value="granite">💎 Granite (IBM) - Enterprise</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="auto-comment" class="mr-2">
+                        <label class="text-sm text-gray-600">Auto-post review comment</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="learn-from-review" class="mr-2" checked>
+                        <label class="text-sm text-gray-600">Learn from this review</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Results -->
+        <div id="review-results" class="hidden">
+            <!-- PR Information -->
+            <div id="pr-info" class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>Pull Request Information
+                </h3>
+                <div id="pr-details" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- PR details will be populated here -->
+                </div>
+            </div>
+
+            <!-- AI Review -->
+            <div id="ai-review" class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">
+                        <i class="fas fa-robot text-purple-500 mr-2"></i>AI Review Analysis
+                    </h3>
+                    <div id="review-badge" class="px-3 py-1 rounded-full text-sm font-medium">
+                        <!-- Review status badge -->
+                    </div>
+                </div>
+                <div id="review-content">
+                    <!-- AI review content will be populated here -->
+                </div>
+            </div>
+
+            <!-- Security Analysis -->
+            <div id="security-analysis" class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-shield-alt text-red-500 mr-2"></i>Security Analysis
+                </h3>
+                <div id="security-findings">
+                    <!-- Security findings will be populated here -->
+                </div>
+            </div>
+
+            <!-- Code Quality -->
+            <div id="code-quality" class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-code text-green-500 mr-2"></i>Code Quality & Best Practices
+                </h3>
+                <div id="quality-metrics">
+                    <!-- Quality metrics will be populated here -->
+                </div>
+            </div>
+
+            <!-- File Changes -->
+            <div id="file-changes" class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-file-code text-blue-500 mr-2"></i>File Changes Analysis
+                </h3>
+                <div id="files-list">
+                    <!-- File changes will be populated here -->
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-tools text-orange-500 mr-2"></i>Actions
+                </h3>
+                <div class="flex flex-wrap gap-3">
+                    <button id="post-review-comment" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600">
+                        <i class="fas fa-comment mr-2"></i>Post AI Review
+                    </button>
+                    <button id="add-custom-comment" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                        <i class="fas fa-edit mr-2"></i>Add Comment
+                    </button>
+                    <button id="approve-pr" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                        <i class="fas fa-check mr-2"></i>Approve
+                    </button>
+                    <button id="request-changes" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Request Changes
+                    </button>
+                    <button id="learn-from-pr" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600">
+                        <i class="fas fa-brain mr-2"></i>Learn from PR
+                    </button>
+                    <button id="auto-review-pr" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600">
+                        <i class="fas fa-robot mr-2"></i>Auto Review PR
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PR Comments Section -->
+        <div id="pr-comments-section" class="bg-white rounded-lg shadow-md p-6 mt-8 hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">
+                    <i class="fas fa-comments text-blue-500 mr-2"></i>PR Comments
+                </h3>
+                <button id="refresh-comments" class="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm">
+                    <i class="fas fa-sync-alt mr-1"></i>Refresh
+                </button>
+            </div>
+            <div id="pr-comments" class="space-y-4">
+                <p class="text-gray-500 text-center py-8">Loading comments...</p>
+            </div>
+        </div>
+
+        <!-- Recent Reviews -->
+        <div id="recent-reviews" class="bg-white rounded-lg shadow-md p-6 mt-8">
+            <h3 class="text-lg font-semibold mb-4">
+                <i class="fas fa-history text-gray-500 mr-2"></i>Recent Reviews
+            </h3>
+            <div id="reviews-history" class="space-y-3">
+                <p class="text-gray-500 text-center py-8">No recent reviews. Start reviewing PRs to see your history here.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Comment Modal -->
+    <div id="comment-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">Add Custom Comment</h3>
+                        <button id="close-comment-modal" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <textarea id="custom-comment-text" rows="6" 
+                              placeholder="Enter your review comment..."
+                              class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                    <div class="flex justify-end gap-3 mt-4">
+                        <button id="cancel-comment" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                        <button id="submit-comment" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Post Comment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto Review Modal -->
+    <div id="auto-review-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">AI Review Preview</h3>
+                        <button id="close-auto-review-modal" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="auto-review-comments" class="space-y-4">
+                        <!-- AI-generated comments will be shown here -->
+                    </div>
+                    <div class="flex justify-end gap-3 mt-4">
+                        <button id="cancel-auto-review" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                        <button id="confirm-auto-review" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">Post Selected Comments</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+            <div class="loading-spinner"></div>
+            <span id="loading-message">Analyzing PR...</span>
+        </div>
+    </div>
+
+    <script>
+        class PRReviewer {
+            constructor() {
+                this.currentPR = null;
+                this.apiBase = '/api/github';
+                this.init();
+            }
+
+            async init() {
+                this.setupEventListeners();
+                await this.checkGitHubStatus();
+                this.loadRecentReviews();
+            }
+
+            setupEventListeners() {
+                document.getElementById('review-by-url').addEventListener('click', () => this.reviewByURL());
+                document.getElementById('review-manual').addEventListener('click', () => this.reviewManual());
+                document.getElementById('post-review-comment').addEventListener('click', () => this.postAIReview());
+                document.getElementById('add-custom-comment').addEventListener('click', () => this.showCommentModal());
+                document.getElementById('refresh-comments').addEventListener('click', () => this.loadPRComments());
+                document.getElementById('approve-pr').addEventListener('click', () => this.approvePR());
+                document.getElementById('request-changes').addEventListener('click', () => this.requestChanges());
+                document.getElementById('learn-from-pr').addEventListener('click', () => this.learnFromPR());
+                document.getElementById('auto-review-pr').addEventListener('click', () => this.autoReviewPR());
+                
+                // Modal events
+                document.getElementById('close-comment-modal').addEventListener('click', () => this.hideCommentModal());
+                document.getElementById('cancel-comment').addEventListener('click', () => this.hideCommentModal());
+                document.getElementById('submit-comment').addEventListener('click', () => this.submitCustomComment());
+                document.getElementById('close-auto-review-modal').addEventListener('click', () => this.hideAutoReviewModal());
+                document.getElementById('cancel-auto-review').addEventListener('click', () => this.hideAutoReviewModal());
+                document.getElementById('confirm-auto-review').addEventListener('click', () => this.confirmAutoReview());
+
+                // Enter key handlers
+                document.getElementById('pr-url').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.reviewByURL();
+                });
+                document.getElementById('pr-number').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.reviewManual();
+                });
+            }
+
+            async checkGitHubStatus() {
+                try {
+                    const response = await fetch(`${this.apiBase}/health`);
+                    const status = await response.json();
+                    
+                    const statusDiv = document.getElementById('github-status');
+                    if (status.status === 'healthy') {
+                        statusDiv.innerHTML = `
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            <span class="text-sm text-green-600">GitHub: ${status.authenticated_user}</span>
+                        `;
+                    } else {
+                        statusDiv.innerHTML = `
+                            <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                            <span class="text-sm text-yellow-600">GitHub: Not configured</span>
+                        `;
+                    }
+                } catch (error) {
+                    const statusDiv = document.getElementById('github-status');
+                    statusDiv.innerHTML = `
+                        <i class="fas fa-times-circle text-red-500 mr-2"></i>
+                        <span class="text-sm text-red-600">GitHub: Error</span>
+                    `;
+                }
+            }
+
+            parseGitHubURL(url) {
+                const regex = /github\.com\/([^\/]+)\/([^\/]+)\/pull\/(\d+)/;
+                const match = url.match(regex);
+                if (match) {
+                    return {
+                        owner: match[1],
+                        repo: match[2],
+                        pr_number: parseInt(match[3])
+                    };
+                }
+                return null;
+            }
+
+            async reviewByURL() {
+                const url = document.getElementById('pr-url').value.trim();
+                if (!url) {
+                    this.showError('Please enter a GitHub PR URL');
+                    return;
+                }
+
+                const parsed = this.parseGitHubURL(url);
+                if (!parsed) {
+                    this.showError('Invalid GitHub PR URL format');
+                    return;
+                }
+
+                await this.reviewPR(parsed.owner, parsed.repo, parsed.pr_number);
+            }
+
+            async reviewManual() {
+                const owner = document.getElementById('owner').value.trim();
+                const repo = document.getElementById('repo').value.trim();
+                const prNumber = parseInt(document.getElementById('pr-number').value);
+
+                if (!owner || !repo || !prNumber) {
+                    this.showError('Please fill in all fields (owner, repo, PR number)');
+                    return;
+                }
+
+                await this.reviewPR(owner, repo, prNumber);
+            }
+
+            async reviewPR(owner, repo, prNumber) {
+                this.showLoading('Fetching PR details...');
+
+                try {
+                    // Get PR details
+                    const prResponse = await fetch(`${this.apiBase}/repos/${owner}/${repo}/pulls/${prNumber}`);
+                    if (!prResponse.ok) {
+                        throw new Error('Failed to fetch PR details');
+                    }
+                    const prData = await prResponse.json();
+
+                    this.currentPR = {
+                        owner,
+                        repo,
+                        pr_number: prNumber,
+                        data: prData
+                    };
+
+                    this.displayPRInfo(prData);
+
+                    // Start AI analysis
+                    this.showLoading('Running AI analysis...');
+                    await this.runAIAnalysis();
+
+                    // Learn from PR if enabled
+                    if (document.getElementById('learn-from-review').checked) {
+                        await this.learnFromPR();
+                    }
+
+                    this.hideLoading();
+                    document.getElementById('review-results').classList.remove('hidden');
+
+                    // Save to recent reviews
+                    this.saveToRecentReviews();
+
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError(`Review failed: ${error.message}`);
+                }
+            }
+
+            displayPRInfo(prData) {
+                const pr = prData.pull_request;
+                const detailsDiv = document.getElementById('pr-details');
+                
+                detailsDiv.innerHTML = `
+                    <div class="space-y-2">
+                        <div><strong>Title:</strong> ${pr.title}</div>
+                        <div><strong>Author:</strong> ${pr.user?.login || 'Unknown'}</div>
+                        <div><strong>Status:</strong> 
+                            <span class="px-2 py-1 rounded text-sm ${pr.state === 'open' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                ${pr.state}
+                            </span>
+                        </div>
+                        <div><strong>Base:</strong> ${pr.base?.ref || 'Unknown'}</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div><strong>Files Changed:</strong> ${prData.files_count || 0}</div>
+                        <div><strong>Comments:</strong> ${prData.comments_count || 0}</div>
+                        <div><strong>Mergeable:</strong> 
+                            <span class="px-2 py-1 rounded text-sm ${pr.mergeable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                ${pr.mergeable ? 'Yes' : 'No'}
+                            </span>
+                        </div>
+                        <div><strong>Created:</strong> ${new Date(pr.created_at).toLocaleDateString()}</div>
+                    </div>
+                `;
+
+                // Show comments section and load comments
+                document.getElementById('pr-comments-section').classList.remove('hidden');
+                this.loadPRComments();
+            }
+
+            async runAIAnalysis() {
+                const { owner, repo, pr_number } = this.currentPR;
+                const modelPreference = document.getElementById('model-preference').value;
+
+                try {
+                    // Run comprehensive AI review
+                    const reviewResponse = await fetch(`${this.apiBase}/repos/${owner}/${repo}/pulls/${pr_number}/ai-review`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            owner,
+                            repo,
+                            pr_number,
+                            model_preference: modelPreference,
+                            auto_comment: false
+                        })
+                    });
+
+                    if (!reviewResponse.ok) {
+                        throw new Error('AI review failed');
+                    }
+
+                    const reviewData = await reviewResponse.json();
+                    this.displayAIReview(reviewData.ai_review);
+
+                    // Run security analysis
+                    const analysisResponse = await fetch(`${this.apiBase}/repos/${owner}/${repo}/pulls/${pr_number}/analyze`);
+                    if (analysisResponse.ok) {
+                        const analysisData = await analysisResponse.json();
+                        this.displaySecurityAnalysis(analysisData.analysis);
+                    }
+
+                } catch (error) {
+                    this.showError(`AI analysis failed: ${error.message}`);
+                }
+            }
+
+            displayAIReview(review) {
+                const reviewContent = document.getElementById('review-content');
+                const reviewBadge = document.getElementById('review-badge');
+
+                // Determine overall status
+                const severity = review.overall_assessment?.severity || 'medium';
+                const severityColors = {
+                    'low': 'bg-green-100 text-green-800',
+                    'medium': 'bg-yellow-100 text-yellow-800',
+                    'high': 'bg-orange-100 text-orange-800',
+                    'critical': 'bg-red-100 text-red-800'
+                };
+
+                reviewBadge.className = `px-3 py-1 rounded-full text-sm font-medium ${severityColors[severity]}`;
+                reviewBadge.textContent = severity.toUpperCase();
+
+                // Display review content
+                let content = '<div class="space-y-4">';
+                
+                if (review.summary) {
+                    content += `
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-medium text-blue-900 mb-2">Summary</h4>
+                            <p class="text-blue-800">${review.summary}</p>
+                        </div>
+                    `;
+                }
+
+                if (review.issues && review.issues.length > 0) {
+                    content += '<div><h4 class="font-medium mb-2">Issues Found:</h4><div class="space-y-2">';
+                    review.issues.forEach(issue => {
+                        const severityClass = `severity-${issue.severity || 'info'}`;
+                        content += `
+                            <div class="p-3 bg-gray-50 rounded-lg ${severityClass}">
+                                <div class="font-medium">${issue.title || 'Issue'}</div>
+                                <div class="text-sm text-gray-600 mt-1">${issue.description || issue.message}</div>
+                                ${issue.file ? `<div class="text-xs text-gray-500 mt-1">File: ${issue.file}</div>` : ''}
+                            </div>
+                        `;
+                    });
+                    content += '</div></div>';
+                }
+
+                if (review.recommendations && review.recommendations.length > 0) {
+                    content += '<div><h4 class="font-medium mb-2">Recommendations:</h4><ul class="list-disc list-inside space-y-1">';
+                    review.recommendations.forEach(rec => {
+                        content += `<li class="text-gray-700">${rec}</li>`;
+                    });
+                    content += '</ul></div>';
+                }
+
+                content += '</div>';
+                reviewContent.innerHTML = content;
+            }
+
+            displaySecurityAnalysis(analysis) {
+                const securityDiv = document.getElementById('security-findings');
+                
+                if (!analysis || !analysis.security_issues) {
+                    securityDiv.innerHTML = '<p class="text-green-600"><i class="fas fa-check mr-2"></i>No security issues detected</p>';
+                    return;
+                }
+
+                let content = '<div class="space-y-3">';
+                analysis.security_issues.forEach(issue => {
+                    const severityColors = {
+                        'critical': 'bg-red-50 border-red-200 text-red-800',
+                        'high': 'bg-orange-50 border-orange-200 text-orange-800',
+                        'medium': 'bg-yellow-50 border-yellow-200 text-yellow-800',
+                        'low': 'bg-blue-50 border-blue-200 text-blue-800'
+                    };
+                    
+                    const colorClass = severityColors[issue.severity] || severityColors.medium;
+                    content += `
+                        <div class="p-4 border rounded-lg ${colorClass}">
+                            <div class="font-medium">${issue.title}</div>
+                            <div class="text-sm mt-1">${issue.description}</div>
+                            ${issue.recommendation ? `<div class="text-sm mt-2"><strong>Fix:</strong> ${issue.recommendation}</div>` : ''}
+                        </div>
+                    `;
+                });
+                content += '</div>';
+                
+                securityDiv.innerHTML = content;
+            }
+
+            async postAIReview() {
+                if (!this.currentPR) {
+                    this.showError('No PR selected');
+                    return;
+                }
+
+                const { owner, repo, pr_number } = this.currentPR;
+                const modelPreference = document.getElementById('model-preference').value;
+
+                this.showLoading('Generating AI review comments...');
+
+                try {
+                    const response = await fetch(`${this.apiBase}/repos/${owner}/${repo}/pulls/${pr_number}/review-comment`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            owner,
+                            repo,
+                            pr_number,
+                            model_preference: modelPreference,
+                            preview_only: true  // Get comments for preview, don't post yet
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to generate review');
+                    }
+
+                    const result = await response.json();
+                    this.hideLoading();
+                    
+                    console.log('AI Review Result:', result); // Debug log
+                    
+                    // Convert the result to the expected format
+                    let comments = [];
+                    
+                    if (result.comments && Array.isArray(result.comments)) {
+                        // If it's already an array of comments
+                        comments = result.comments;
+                    } else if (result.comment_result && result.comment_result.comment_body) {
+                        // If it's a single comment result, parse it into structured comments
+                        const commentBody = result.comment_result.comment_body;
+                        
+                        // Try to parse the comment body into structured comments
+                        comments = this.parseCommentBody(commentBody);
+                    }
+                    
+                    // If still no comments, create a single comment with the full review
+                    if (comments.length === 0 && result.comment_result && result.comment_result.comment_body) {
+                        comments = [{
+                            file: 'General Review',
+                            line: 1,
+                            body: result.comment_result.comment_body
+                        }];
+                    }
+                    
+                    console.log('Processed Comments:', comments); // Debug log
+                    
+                    // Show comments in editable preview modal
+                    this.showAIReviewPreview(comments);
+
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError(`Failed to generate review: ${error.message}`);
+                }
+            }
+
+            showAIReviewPreview(comments) {
+                const modal = document.getElementById('auto-review-modal');
+                const commentsDiv = document.getElementById('auto-review-comments');
+                const modalTitle = modal.querySelector('h3');
+                
+                console.log('AI Review Comments:', comments); // Debug log
+                
+                modalTitle.textContent = 'AI Review Comments - Edit & Select';
+                
+                if (!comments || comments.length === 0) {
+                    commentsDiv.innerHTML = '<p class="text-gray-500">No issues found. LGTM! 🚀</p>';
+                } else {
+                    // Convert comments to array if it's not already
+                    const commentsArray = Array.isArray(comments) ? comments : [comments];
+                    
+                    commentsDiv.innerHTML = commentsArray.map((comment, index) => {
+                        console.log(`Comment ${index}:`, comment); // Debug log
+                        
+                        // Handle different comment formats
+                        let file = 'Unknown File';
+                        let line = 'Unknown Line';
+                        let body = 'No comment text';
+                        
+                        if (typeof comment === 'string') {
+                            // If comment is just a string, treat it as the body
+                            body = comment;
+                        } else if (comment && typeof comment === 'object') {
+                            file = comment.file || comment.filename || comment.fileName || 'Unknown File';
+                            line = comment.line || comment.line_number || comment.lineNumber || 'Unknown Line';
+                            body = comment.body || comment.comment || comment.text || comment.content || 'No comment text';
+                        }
+                        
+                        // Escape HTML to prevent XSS
+                        const escapedBody = this.escapeHtml(body);
+                        const escapedFile = this.escapeHtml(file);
+                        const escapedLine = this.escapeHtml(line.toString());
+                        
+                        return `
+                            <div class="bg-white border rounded-lg p-4 mb-4 shadow-sm" data-comment-index="${index}">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-3">
+                                        <input type="checkbox" id="select-comment-${index}" checked 
+                                               class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300">
+                                        <label for="select-comment-${index}" class="font-medium text-gray-700 cursor-pointer">
+                                            ${escapedFile} <span class="text-xs text-gray-500">Line ${escapedLine}</span>
+                                        </label>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button onclick="prReviewer.editAIComment(${index})" 
+                                                class="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded hover:bg-blue-50">
+                                            <i class="fas fa-edit mr-1"></i>Edit
+                                        </button>
+                                        <button onclick="prReviewer.postSingleComment(${index})" 
+                                                class="text-green-600 hover:text-green-800 text-sm px-2 py-1 rounded hover:bg-green-50">
+                                            <i class="fas fa-paper-plane mr-1"></i>Post Now
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="comment-content" id="ai-comment-content-${index}">
+                                    <div class="bg-gray-50 p-3 rounded text-sm whitespace-pre-wrap border">${escapedBody}</div>
+                                </div>
+                                <div class="comment-edit-form hidden" id="ai-comment-edit-${index}">
+                                    <textarea class="w-full p-3 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="6">${escapedBody}</textarea>
+                                    <div class="flex space-x-2 mt-2">
+                                        <button onclick="prReviewer.saveAICommentEdit(${index})" 
+                                                class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 focus:ring-2 focus:ring-blue-500">
+                                            Save
+                                        </button>
+                                        <button onclick="prReviewer.cancelAICommentEdit(${index})" 
+                                                class="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 focus:ring-2 focus:ring-gray-500">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+                
+                modal.classList.remove('hidden');
+                this._pendingAIComments = Array.isArray(comments) ? comments : [comments];
+                
+                // Add some visual feedback
+                console.log(`Rendered ${this._pendingAIComments.length} comments with selection controls`);
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            parseCommentBody(commentBody) {
+                console.log('Parsing comment body:', commentBody); // Debug
+                
+                const comments = [];
+                
+                // Try to split by file/line pattern first
+                const fileLinePattern = /([^\/\s]+\.(go|py|js|ts|java|cpp|c|h|hpp|cs|php|rb|rs|swift|kt|scala|clj|hs|ml|fs|vb|sql|sh|bash|ps1|yaml|yml|json|xml|html|css|scss|less|md|txt|log|ini|cfg|conf|toml|lock|lockfile|gitignore|dockerfile|makefile|cmake|gradle|maven|sbt|npm|yarn|pip|requirements|setup|pyproject|cargo|composer|package|gemfile|rakefile|gruntfile|gulpfile|webpack|rollup|vite|jest|mocha|chai|jasmine|karma|protractor|selenium|cypress|playwright|puppeteer|nightwatch|wdio|appium|calabash|espresso|xcuitest|detox|maestro|flutter|react|vue|angular|svelte|solid|preact|lit|alpine|stimulus|hotwire|turbo|stimulus|phoenix|rails|django|flask|fastapi|express|koa|hapi|restify|sails|meteor|strapi|keystone|ghost|wordpress|drupal|joomla|magento|shopify|woocommerce|opencart|prestashop|oscommerce|zen|xcart|bigcommerce|volusion|3dcart|ecwid|squarespace|wix|weebly|webflow|bubble|airtable|notion|clickup|asana|trello|monday|jira|confluence|bitbucket|gitlab|github|azure|aws|gcp|heroku|netlify|vercel|railway|render|fly|digitalocean|linode|vultr|upcloud|scaleway|ovh|hetzner|contabo|hostinger|namecheap|godaddy|bluehost|hostgator|dreamhost|a2|inmotion|liquidweb|mediatemple|wpengine|kinsta|pantheon|acquia|platform|sh))\s+Line\s+(\d+)/g;
+                
+                let match;
+                let lastIndex = 0;
+                
+                while ((match = fileLinePattern.exec(commentBody)) !== null) {
+                    const file = match[1];
+                    const line = parseInt(match[3]);
+                    const startIndex = match.index;
+                    
+                    // Find the end of this comment (next file/line pattern or end of string)
+                    const nextMatch = fileLinePattern.exec(commentBody);
+                    const endIndex = nextMatch ? nextMatch.index : commentBody.length;
+                    fileLinePattern.lastIndex = startIndex + match[0].length; // Reset for next iteration
+                    
+                    // Extract the comment content
+                    const commentContent = commentBody.substring(startIndex + match[0].length, endIndex).trim();
+                    
+                    if (commentContent) {
+                        comments.push({
+                            file: file,
+                            line: line,
+                            body: commentContent
+                        });
+                    }
+                    
+                    lastIndex = endIndex;
+                }
+                
+                console.log('Found', comments.length, 'comments via file/line pattern'); // Debug
+                
+                // If no file/line patterns found, try to split by logical sections
+                if (comments.length === 0) {
+                    // Split by sections that look like review comments
+                    const sections = commentBody.split(/(?=^[a-zA-Z0-9\/]+\.(go|py|js|ts|java|cpp|c|h|hpp|cs|php|rb|rs|swift|kt|scala|clj|hs|ml|fs|vb|sql|sh|bash|ps1|yaml|yml|json|xml|html|css|scss|less|md|txt|log|ini|cfg|conf|toml|lock|lockfile|gitignore|dockerfile|makefile)\s+Line\s+\d+)/m);
+                    
+                    sections.forEach((section, index) => {
+                        if (section.trim()) {
+                            // Try to extract file and line from the section
+                            const headerMatch = section.match(/^([a-zA-Z0-9\/]+\.(go|py|js|ts|java|cpp|c|h|hpp|cs|php|rb|rs|swift|kt|scala|clj|hs|ml|fs|vb|sql|sh|bash|ps1|yaml|yml|json|xml|html|css|scss|less|md|txt|log|ini|cfg|conf|toml|lock|lockfile|gitignore|dockerfile|makefile))\s+Line\s+(\d+)/);
+                            
+                            if (headerMatch) {
+                                const file = headerMatch[1];
+                                const line = parseInt(headerMatch[3]);
+                                const body = section.replace(headerMatch[0], '').trim();
+                                
+                                comments.push({
+                                    file: file,
+                                    line: line,
+                                    body: body
+                                });
+                            } else {
+                                // Fallback: create a generic comment
+                                comments.push({
+                                    file: `Review Section ${index + 1}`,
+                                    line: index + 1,
+                                    body: section.trim()
+                                });
+                            }
+                        }
+                    });
+                }
+                
+                console.log('Found', comments.length, 'comments via section splitting'); // Debug
+                
+                // Final fallback: create individual comments for each paragraph
+                if (comments.length === 0) {
+                    const paragraphs = commentBody.split(/\n\s*\n/).filter(p => p.trim());
+                    paragraphs.forEach((paragraph, index) => {
+                        if (paragraph.trim()) {
+                            comments.push({
+                                file: `Comment ${index + 1}`,
+                                line: index + 1,
+                                body: paragraph.trim()
+                            });
+                        }
+                    });
+                }
+                
+                console.log('Final comment count:', comments.length); // Debug
+                console.log('Parsed comments:', comments); // Debug
+                
+                return comments;
+            }
+
+            editAIComment(index) {
+                const contentDiv = document.getElementById(`ai-comment-content-${index}`);
+                const editDiv = document.getElementById(`ai-comment-edit-${index}`);
+                
+                contentDiv.classList.add('hidden');
+                editDiv.classList.remove('hidden');
+            }
+
+            saveAICommentEdit(index) {
+                const editDiv = document.getElementById(`ai-comment-edit-${index}`);
+                const textarea = editDiv.querySelector('textarea');
+                const contentDiv = document.getElementById(`ai-comment-content-${index}`);
+                const contentDisplay = contentDiv.querySelector('div');
+                
+                const newText = textarea.value.trim();
+                if (!newText) {
+                    this.showError('Comment cannot be empty');
+                    return;
+                }
+                
+                // Update the comment in our pending comments array
+                this._pendingAIComments[index].body = newText;
+                
+                // Update the display
+                contentDisplay.textContent = newText;
+                
+                // Hide edit form
+                editDiv.classList.add('hidden');
+                contentDiv.classList.remove('hidden');
+                
+                this.showSuccess('Comment updated!');
+            }
+
+            cancelAICommentEdit(index) {
+                const contentDiv = document.getElementById(`ai-comment-content-${index}`);
+                const editDiv = document.getElementById(`ai-comment-edit-${index}`);
+                const textarea = editDiv.querySelector('textarea');
+                
+                // Restore original text
+                textarea.value = this._pendingAIComments[index].body;
+                
+                editDiv.classList.add('hidden');
+                contentDiv.classList.remove('hidden');
+            }
+
+            async postSingleComment(index) {
+                if (!this.currentPR || !this._pendingAIComments) return;
+                
+                const comment = this._pendingAIComments[index];
+                const { owner, repo, pr_number } = this.currentPR;
+                
+                this.showLoading('Posting comment...');
+                
+                try {
+                    const response = await fetch(`${this.apiBase}/repos/${owner}/${repo}/pulls/${pr_number}/comment`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            owner,
+                            repo,
+                            pr_number,
+                            comment_body: comment.body
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to post comment');
+                    }
+                    
+                    this.hideLoading();
+                    this.showSuccess(`Comment posted successfully!`);
+                    
+                    // Mark as posted and disable the checkbox
+                    const checkbox = document.getElementById(`select-comment-${index}`);
+                    checkbox.checked = false;
+                    checkbox.disabled = true;
+                    
+                    // Update button text
+                    const button = checkbox.closest('.bg-white').querySelector('button[onclick*="postSingleComment"]');
+                    button.innerHTML = '<i class="fas fa-check mr-1"></i>Posted';
+                    button.disabled = true;
+                    button.className = 'text-gray-500 text-sm cursor-not-allowed';
+                    
+                    // Refresh comments list
+                    await this.loadPRComments();
+                    
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError(`Failed to post comment: ${error.message}`);
+                }
+            }
+
+            showCommentModal() {
+                document.getElementById('comment-modal').classList.remove('hidden');
+            }
+
+            hideCommentModal() {
+                document.getElementById('comment-modal').classList.add('hidden');
+                document.getElementById('custom-comment-text').value = '';
+            }
+
+            async submitCustomComment() {
+                const comment = document.getElementById('custom-comment-text').value.trim();
+                if (!comment) {
+                    this.showError('Please enter a comment');
+                    return;
+                }
+
+                if (!this.currentPR) {
+                    this.showError('No PR selected');
+                    return;
+                }
+
+                const { owner, repo, pr_number } = this.currentPR;
+
+                this.showLoading('Posting comment...');
+
+                try {
+                    const response = await fetch(`${this.apiBase}/repos/${owner}/${repo}/pulls/${pr_number}/comment`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            owner,
+                            repo,
+                            pr_number,
+                            comment_body: comment
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to post comment');
+                    }
+
+                    const result = await response.json();
+                    this.hideLoading();
+                    this.hideCommentModal();
+                    this.showSuccess('Comment posted successfully!');
+                    
+                    // Refresh comments list
+                    await this.loadPRComments();
+
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError(`Failed to post comment: ${error.message}`);
+                }
+            }
+
+            async loadPRComments() {
+                if (!this.currentPR) return;
+                
+                const { owner, repo, pr_number } = this.currentPR;
+                
+                try {
+                    const response = await fetch(`${this.apiBase}/repos/${owner}/${repo}/pulls/${pr_number}/comments`);
+                    if (response.ok) {
+                        const comments = await response.json();
+                        this.displayComments(comments.comments || []);
+                    }
+                } catch (error) {
+                    console.error('Failed to load comments:', error);
+                }
+            }
+
+            displayComments(comments) {
+                const commentsDiv = document.getElementById('pr-comments');
+                if (!commentsDiv) return;
+
+                if (comments.length === 0) {
+                    commentsDiv.innerHTML = '<p class="text-gray-500 text-center py-4">No comments yet</p>';
+                    return;
+                }
+
+                commentsDiv.innerHTML = comments.map(comment => `
+                    <div class="bg-white p-4 rounded-lg border mb-4" data-comment-id="${comment.id}">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center">
+                                <img src="${comment.user?.avatar_url || '/default-avatar.png'}" 
+                                     alt="${comment.user?.login || 'User'}" 
+                                     class="w-8 h-8 rounded-full mr-3">
+                                <div>
+                                    <div class="font-medium">${comment.user?.login || 'Unknown'}</div>
+                                    <div class="text-sm text-gray-500">${new Date(comment.created_at).toLocaleString()}</div>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="prReviewer.editComment(${comment.id})" 
+                                        class="text-blue-600 hover:text-blue-800 text-sm">
+                                    <i class="fas fa-edit mr-1"></i>Edit
+                                </button>
+                                <button onclick="prReviewer.deleteComment(${comment.id})" 
+                                        class="text-red-600 hover:text-red-800 text-sm">
+                                    <i class="fas fa-trash mr-1"></i>Delete
+                                </button>
+                            </div>
+                        </div>
+                        <div class="comment-content" id="comment-content-${comment.id}">
+                            ${this.formatCommentBody(comment.body)}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            formatCommentBody(body) {
+                // Convert markdown-like formatting to HTML
+                return body
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 rounded">$1</code>')
+                    .replace(/\n/g, '<br>');
+            }
+
+            async editComment(commentId) {
+                const commentDiv = document.querySelector(`[data-comment-id="${commentId}"]`);
+                const contentDiv = document.getElementById(`comment-content-${commentId}`);
+                const currentText = contentDiv.textContent || contentDiv.innerText;
+
+                // Create edit form
+                const editForm = document.createElement('div');
+                editForm.className = 'mt-2';
+                editForm.innerHTML = `
+                    <textarea class="w-full p-2 border rounded-lg" rows="4">${currentText}</textarea>
+                    <div class="flex space-x-2 mt-2">
+                        <button onclick="prReviewer.saveCommentEdit(${commentId}, this)" 
+                                class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            Save
+                        </button>
+                        <button onclick="prReviewer.cancelCommentEdit(${commentId})" 
+                                class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                            Cancel
+                        </button>
+                    </div>
+                `;
+
+                // Hide original content and show edit form
+                contentDiv.style.display = 'none';
+                commentDiv.appendChild(editForm);
+            }
+
+            async saveCommentEdit(commentId, button) {
+                const textarea = button.parentElement.previousElementSibling;
+                const newText = textarea.value.trim();
+
+                if (!newText) {
+                    this.showError('Comment cannot be empty');
+                    return;
+                }
+
+                this.showLoading('Updating comment...');
+
+                try {
+                    const { owner, repo, pr_number } = this.currentPR;
+                    const response = await fetch(`${this.apiBase}/repos/${owner}/${repo}/pulls/${pr_number}/comments/${commentId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            owner,
+                            repo,
+                            pr_number,
+                            comment_id: commentId,
+                            comment_body: newText
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to update comment');
+                    }
+
+                    this.hideLoading();
+                    this.showSuccess('Comment updated successfully!');
+                    await this.loadPRComments();
+
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError(`Failed to update comment: ${error.message}`);
+                }
+            }
+
+            cancelCommentEdit(commentId) {
+                const commentDiv = document.querySelector(`[data-comment-id="${commentId}"]`);
+                const contentDiv = document.getElementById(`comment-content-${commentId}`);
+                const editForm = commentDiv.querySelector('div:last-child');
+
+                contentDiv.style.display = 'block';
+                commentDiv.removeChild(editForm);
+            }
+
+            async deleteComment(commentId) {
+                if (!confirm('Are you sure you want to delete this comment?')) {
+                    return;
+                }
+
+                this.showLoading('Deleting comment...');
+
+                try {
+                    const { owner, repo, pr_number } = this.currentPR;
+                    const response = await fetch(`${this.apiBase}/repos/${owner}/${repo}/pulls/${pr_number}/comments/${commentId}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            owner,
+                            repo,
+                            pr_number,
+                            comment_id: commentId
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to delete comment');
+                    }
+
+                    this.hideLoading();
+                    this.showSuccess('Comment deleted successfully!');
+                    await this.loadPRComments();
+
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError(`Failed to delete comment: ${error.message}`);
+                }
+            }
+
+            async learnFromPR() {
+                if (!this.currentPR) {
+                    this.showError('No PR selected');
+                    return;
+                }
+
+                this.showLoading('Learning from PR...');
+
+                try {
+                    // Use continuous learning system to learn from this PR
+                    const { owner, repo, pr_number } = this.currentPR;
+                    const prUrl = `https://github.com/${owner}/${repo}/pull/${pr_number}`;
+                    
+                    const formData = new FormData();
+                    formData.append('model_name', 'granite3.3-balanced');
+                    formData.append('urls', prUrl);
+                    formData.append('custom_content', `PR Review Learning: ${this.currentPR.data.pull_request.title}\n\nAnalysis and patterns from reviewing this pull request.`);
+
+                    const response = await fetch('/api/models/continuous-learning', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        this.hideLoading();
+                        this.showSuccess('PR patterns learned successfully! This will improve future reviews.');
+                    } else {
+                        throw new Error('Learning failed');
+                    }
+
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError(`Learning failed: ${error.message}`);
+                }
+            }
+
+            async autoReviewPR() {
+                if (!this.currentPR) {
+                    this.showError('No PR selected');
+                    return;
+                }
+
+                const { owner, repo, pr_number } = this.currentPR;
+
+                this.showLoading('Running Auto Review...');
+
+                try {
+                    // Call the dedicated auto-review endpoint
+                    const response = await fetch(`${this.apiBase}/repos/${owner}/${repo}/pulls/${pr_number}/auto-review?preview=true`);
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to generate auto review');
+                    }
+
+                    const result = await response.json();
+                    this.hideLoading();
+                    
+                    console.log('Auto Review Result:', result); // Debug log
+                    
+                    // The auto-review endpoint returns {comments: [...], limits_applied: {...}}
+                    const comments = result.comments || [];
+                    
+                    console.log('Auto Review Comments:', comments); // Debug log
+                    
+                    // Show comments in editable preview modal
+                    this.showAIReviewPreview(comments);
+
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError(`Auto Review failed: ${error.message}`);
+                }
+            }
+
+            hideAutoReviewModal() {
+                document.getElementById('auto-review-modal').classList.add('hidden');
+                this._pendingAutoReviewComments = [];
+            }
+
+            async confirmAutoReview() {
+                if (!this.currentPR || !this._pendingAIComments) return;
+                
+                // Get selected comments
+                const selectedComments = [];
+                this._pendingAIComments.forEach((comment, index) => {
+                    const checkbox = document.getElementById(`select-comment-${index}`);
+                    if (checkbox && checkbox.checked && !checkbox.disabled) {
+                        selectedComments.push(comment);
+                    }
+                });
+                
+                if (selectedComments.length === 0) {
+                    this.showError('Please select at least one comment to post');
+                    return;
+                }
+                
+                this.hideAutoReviewModal();
+                this.showLoading(`Posting ${selectedComments.length} selected comments to GitHub...`);
+                
+                try {
+                    const { owner, repo, pr_number } = this.currentPR;
+                    let postedCount = 0;
+                    
+                    // Post each selected comment individually
+                    for (const comment of selectedComments) {
+                        try {
+                            const response = await fetch(`${this.apiBase}/repos/${owner}/${repo}/pulls/${pr_number}/comment`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    owner,
+                                    repo,
+                                    pr_number,
+                                    comment_body: comment.body
+                                })
+                            });
+                            
+                            if (response.ok) {
+                                postedCount++;
+                            }
+                        } catch (error) {
+                            console.error(`Failed to post comment: ${error.message}`);
+                        }
+                    }
+                    
+                    this.hideLoading();
+                    
+                    if (postedCount === selectedComments.length) {
+                        this.showSuccess(`All ${postedCount} selected comments posted to GitHub!`);
+                    } else if (postedCount > 0) {
+                        this.showSuccess(`${postedCount} out of ${selectedComments.length} comments posted successfully!`);
+                    } else {
+                        this.showError('Failed to post any comments');
+                    }
+                    
+                    // Refresh comments list
+                    await this.loadPRComments();
+                    
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError(`Failed to post comments: ${error.message}`);
+                }
+            }
+
+            saveToRecentReviews() {
+                const reviews = JSON.parse(localStorage.getItem('recent_reviews') || '[]');
+                const newReview = {
+                    owner: this.currentPR.owner,
+                    repo: this.currentPR.repo,
+                    pr_number: this.currentPR.pr_number,
+                    title: this.currentPR.data.pull_request.title,
+                    reviewed_at: new Date().toISOString()
+                };
+                
+                reviews.unshift(newReview);
+                if (reviews.length > 10) reviews.pop(); // Keep only last 10
+                
+                localStorage.setItem('recent_reviews', JSON.stringify(reviews));
+                this.loadRecentReviews();
+            }
+
+            loadRecentReviews() {
+                const reviews = JSON.parse(localStorage.getItem('recent_reviews') || '[]');
+                const historyDiv = document.getElementById('reviews-history');
+                
+                if (reviews.length === 0) {
+                    historyDiv.innerHTML = '<p class="text-gray-500 text-center py-8">No recent reviews. Start reviewing PRs to see your history here.</p>';
+                    return;
+                }
+
+                historyDiv.innerHTML = reviews.map(review => `
+                    <div class="review-card bg-gray-50 p-4 rounded-lg border hover:bg-gray-100 cursor-pointer" 
+                         onclick="prReviewer.quickReview('${review.owner}', '${review.repo}', ${review.pr_number})">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="font-medium">${review.title}</div>
+                                <div class="text-sm text-gray-600">${review.owner}/${review.repo} #${review.pr_number}</div>
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                ${new Date(review.reviewed_at).toLocaleDateString()}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            async quickReview(owner, repo, prNumber) {
+                document.getElementById('owner').value = owner;
+                document.getElementById('repo').value = repo;
+                document.getElementById('pr-number').value = prNumber;
+                await this.reviewManual();
+            }
+
+            showLoading(message) {
+                document.getElementById('loading-message').textContent = message;
+                document.getElementById('loading-overlay').classList.remove('hidden');
+            }
+
+            hideLoading() {
+                document.getElementById('loading-overlay').classList.add('hidden');
+            }
+
+            showError(message) {
+                // Simple toast notification
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                toast.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${message}`;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 5000);
+            }
+
+            showSuccess(message) {
+                // Simple toast notification
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                toast.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${message}`;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 5000);
+            }
+
+            async approvePR() {
+                // Implementation for PR approval
+                this.showError('PR approval feature coming soon!');
+            }
+
+            async requestChanges() {
+                // Implementation for requesting changes
+                this.showError('Request changes feature coming soon!');
+            }
+        }
+
+        // Initialize the PR Reviewer
+        let prReviewer;
+        document.addEventListener('DOMContentLoaded', () => {
+            prReviewer = new PRReviewer();
+            
+            // Initialize model preference
+            const modelSelect = document.getElementById('model-preference');
+            if (modelSelect) {
+                // Load saved preference or default to ollama
+                const savedModel = localStorage.getItem('pr-reviewer-model') || 'ollama';
+                modelSelect.value = savedModel;
+                
+                // Save preference when changed
+                modelSelect.addEventListener('change', function(e) {
+                    localStorage.setItem('pr-reviewer-model', e.target.value);
+                    console.log(`PR Reviewer model changed to: ${e.target.value}`);
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

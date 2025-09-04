@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Recognition Diagnostics</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .test-result {
+            transition: all 0.3s ease;
+        }
+        .test-running {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                    <i class="fas fa-stethoscope text-blue-500"></i> Voice Recognition Diagnostics
+                </h1>
+                <p class="text-gray-600">Comprehensive testing to diagnose voice recognition issues</p>
+            </div>
+
+            <!-- Quick Status -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Quick Status Check</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div id="status-browser" class="text-center p-3 rounded-lg bg-gray-100">
+                        <i class="fas fa-browser text-2xl mb-2"></i>
+                        <div class="font-medium">Browser</div>
+                        <div id="browser-status" class="text-sm text-gray-600">Checking...</div>
+                    </div>
+                    <div id="status-internet" class="text-center p-3 rounded-lg bg-gray-100">
+                        <i class="fas fa-wifi text-2xl mb-2"></i>
+                        <div class="font-medium">Internet</div>
+                        <div id="internet-status" class="text-sm text-gray-600">Checking...</div>
+                    </div>
+                    <div id="status-microphone" class="text-center p-3 rounded-lg bg-gray-100">
+                        <i class="fas fa-microphone text-2xl mb-2"></i>
+                        <div class="font-medium">Microphone</div>
+                        <div id="microphone-status" class="text-sm text-gray-600">Checking...</div>
+                    </div>
+                    <div id="status-speech" class="text-center p-3 rounded-lg bg-gray-100">
+                        <i class="fas fa-comment-dots text-2xl mb-2"></i>
+                        <div class="font-medium">Speech API</div>
+                        <div id="speech-status" class="text-sm text-gray-600">Checking...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Tests -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Detailed Network Tests</h2>
+                <div class="space-y-4">
+                    <button id="run-all-tests" class="w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-play mr-2"></i>Run All Tests
+                    </button>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-3">
+                            <div id="test-basic" class="test-result p-3 rounded-lg border">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-medium">Basic Connectivity</span>
+                                    <span id="result-basic" class="text-sm text-gray-500">Not tested</span>
+                                </div>
+                            </div>
+                            
+                            <div id="test-google" class="test-result p-3 rounded-lg border">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-medium">Google Services</span>
+                                    <span id="result-google" class="text-sm text-gray-500">Not tested</span>
+                                </div>
+                            </div>
+                            
+                            <div id="test-speech-api" class="test-result p-3 rounded-lg border">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-medium">Speech API</span>
+                                    <span id="result-speech-api" class="text-sm text-gray-500">Not tested</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div id="test-dns" class="test-result p-3 rounded-lg border">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-medium">DNS Resolution</span>
+                                    <span id="result-dns" class="text-sm text-gray-500">Not tested</span>
+                                </div>
+                            </div>
+                            
+                            <div id="test-backend" class="test-result p-3 rounded-lg border">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-medium">Backend Connection</span>
+                                    <span id="result-backend" class="text-sm text-gray-500">Not tested</span>
+                                </div>
+                            </div>
+                            
+                            <div id="test-permissions" class="test-result p-3 rounded-lg border">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-medium">Microphone Permission</span>
+                                    <span id="result-permissions" class="text-sm text-gray-500">Not tested</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice Test -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Voice Recognition Test</h2>
+                <div class="text-center">
+                    <button id="test-voice" class="p-4 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all">
+                        <i class="fas fa-microphone text-2xl"></i>
+                    </button>
+                    <div id="voice-feedback" class="mt-4 text-gray-600">Click the microphone to test voice recognition</div>
+                </div>
+            </div>
+
+            <!-- Results Log -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Diagnostic Log</h2>
+                <div id="diagnostic-log" class="bg-gray-50 p-4 rounded-lg h-48 overflow-y-auto text-sm font-mono">
+                    <div class="text-gray-600">Ready to run diagnostics...</div>
+                </div>
+                <button id="clear-log" class="mt-3 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">
+                    Clear Log
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class VoiceDiagnostics {
+            constructor() {
+                this.logElement = document.getElementById('diagnostic-log');
+                this.setupEventListeners();
+                this.runQuickStatus();
+            }
+
+            log(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const colors = {
+                    info: 'text-blue-600',
+                    success: 'text-green-600',
+                    error: 'text-red-600',
+                    warning: 'text-yellow-600'
+                };
+                
+                const div = document.createElement('div');
+                div.className = colors[type] || 'text-gray-600';
+                div.textContent = `[${timestamp}] ${message}`;
+                this.logElement.appendChild(div);
+                this.logElement.scrollTop = this.logElement.scrollHeight;
+            }
+
+            setupEventListeners() {
+                document.getElementById('run-all-tests').addEventListener('click', () => this.runAllTests());
+                document.getElementById('test-voice').addEventListener('click', () => this.testVoiceRecognition());
+                document.getElementById('clear-log').addEventListener('click', () => this.clearLog());
+            }
+
+            clearLog() {
+                this.logElement.innerHTML = '<div class="text-gray-600">Log cleared...</div>';
+            }
+
+            async runQuickStatus() {
+                // Browser support
+                const speechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+                this.updateStatus('browser', speechSupported ? 'Supported' : 'Not Supported', speechSupported);
+
+                // Internet status
+                const online = navigator.onLine;
+                this.updateStatus('internet', online ? 'Connected' : 'Offline', online);
+
+                // Speech API availability
+                this.updateStatus('speech', speechSupported ? 'Available' : 'Not Available', speechSupported);
+
+                // Microphone permission check
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    stream.getTracks().forEach(track => track.stop());
+                    this.updateStatus('microphone', 'Permitted', true);
+                } catch (error) {
+                    this.updateStatus('microphone', 'Denied/Error', false);
+                }
+            }
+
+            updateStatus(id, text, success) {
+                const element = document.getElementById(`${id}-status`);
+                const container = document.getElementById(`status-${id}`);
+                
+                element.textContent = text;
+                container.className = container.className.replace(/bg-\w+-\d+/, '');
+                container.classList.add(success ? 'bg-green-100' : 'bg-red-100');
+            }
+
+            updateTestResult(testId, status, success) {
+                const resultElement = document.getElementById(`result-${testId}`);
+                const testElement = document.getElementById(`test-${testId}`);
+                
+                resultElement.textContent = status;
+                testElement.className = testElement.className.replace(/border-\w+-\d+/, '');
+                testElement.classList.add(success ? 'border-green-300' : 'border-red-300');
+                testElement.classList.add(success ? 'bg-green-50' : 'bg-red-50');
+                testElement.classList.remove('test-running');
+            }
+
+            async runAllTests() {
+                this.log('Starting comprehensive diagnostics...', 'info');
+                
+                const tests = [
+                    { id: 'basic', name: 'Basic Connectivity', test: () => this.testBasicConnectivity() },
+                    { id: 'google', name: 'Google Services', test: () => this.testGoogleConnectivity() },
+                    { id: 'dns', name: 'DNS Resolution', test: () => this.testDNS() },
+                    { id: 'backend', name: 'Backend Connection', test: () => this.testBackend() },
+                    { id: 'speech-api', name: 'Speech API', test: () => this.testSpeechAPI() },
+                    { id: 'permissions', name: 'Microphone Permission', test: () => this.testMicrophonePermission() }
+                ];
+
+                for (const test of tests) {
+                    this.log(`Testing ${test.name}...`, 'info');
+                    document.getElementById(`test-${test.id}`).classList.add('test-running');
+                    
+                    try {
+                        const result = await test.test();
+                        this.updateTestResult(test.id, result.message, result.success);
+                        this.log(`${test.name}: ${result.message}`, result.success ? 'success' : 'error');
+                    } catch (error) {
+                        this.updateTestResult(test.id, 'Error', false);
+                        this.log(`${test.name}: ${error.message}`, 'error');
+                    }
+                }
+
+                this.log('Diagnostics complete!', 'info');
+            }
+
+            async testBasicConnectivity() {
+                return {
+                    success: navigator.onLine,
+                    message: navigator.onLine ? 'Online' : 'Offline'
+                };
+            }
+
+            async testGoogleConnectivity() {
+                try {
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 5000);
+                    
+                    await fetch('https://www.google.com/favicon.ico', { 
+                        method: 'HEAD', 
+                        mode: 'no-cors',
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeout);
+                    return { success: true, message: 'Reachable' };
+                } catch (error) {
+                    return { success: false, message: `Failed: ${error.message}` };
+                }
+            }
+
+            async testDNS() {
+                try {
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 5000);
+                    
+                    await fetch('https://8.8.8.8', { 
+                        method: 'HEAD', 
+                        mode: 'no-cors',
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeout);
+                    return { success: true, message: 'Working' };
+                } catch (error) {
+                    return { success: false, message: `Failed: ${error.message}` };
+                }
+            }
+
+            async testBackend() {
+                try {
+                    const response = await fetch('http://localhost:8000/api/auth/status');
+                    return { 
+                        success: response.ok, 
+                        message: response.ok ? `Connected (${response.status})` : `Failed (${response.status})`
+                    };
+                } catch (error) {
+                    return { success: false, message: `Failed: ${error.message}` };
+                }
+            }
+
+            async testSpeechAPI() {
+                if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                    return { success: false, message: 'Not supported' };
+                }
+
+                try {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    const recognition = new SpeechRecognition();
+                    recognition.continuous = false;
+                    recognition.interimResults = false;
+                    
+                    return new Promise((resolve) => {
+                        const timeout = setTimeout(() => {
+                            recognition.stop();
+                            resolve({ success: false, message: 'Timeout - likely network issue' });
+                        }, 3000);
+
+                        recognition.onerror = (event) => {
+                            clearTimeout(timeout);
+                            resolve({ 
+                                success: false, 
+                                message: `Error: ${event.error}` 
+                            });
+                        };
+
+                        recognition.onstart = () => {
+                            clearTimeout(timeout);
+                            recognition.stop();
+                            resolve({ success: true, message: 'Available' });
+                        };
+
+                        recognition.start();
+                    });
+                } catch (error) {
+                    return { success: false, message: `Failed: ${error.message}` };
+                }
+            }
+
+            async testMicrophonePermission() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    stream.getTracks().forEach(track => track.stop());
+                    return { success: true, message: 'Granted' };
+                } catch (error) {
+                    return { success: false, message: `Denied: ${error.message}` };
+                }
+            }
+
+            testVoiceRecognition() {
+                if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                    document.getElementById('voice-feedback').textContent = 'Speech recognition not supported';
+                    return;
+                }
+
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+
+                const button = document.getElementById('test-voice');
+                const feedback = document.getElementById('voice-feedback');
+
+                recognition.onstart = () => {
+                    button.classList.add('animate-pulse');
+                    feedback.textContent = 'Listening... say something!';
+                    this.log('Voice recognition started', 'info');
+                };
+
+                recognition.onend = () => {
+                    button.classList.remove('animate-pulse');
+                    feedback.textContent = 'Click the microphone to test voice recognition';
+                    this.log('Voice recognition ended', 'info');
+                };
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    feedback.textContent = `Recognized: "${transcript}"`;
+                    this.log(`Voice recognized: "${transcript}"`, 'success');
+                };
+
+                recognition.onerror = (event) => {
+                    feedback.textContent = `Error: ${event.error}`;
+                    this.log(`Voice recognition error: ${event.error}`, 'error');
+                    
+                    // Log detailed error info
+                    this.log(`Error details: Navigator online: ${navigator.onLine}`, 'warning');
+                    this.log(`User agent: ${navigator.userAgent}`, 'info');
+                    this.log(`Protocol: ${window.location.protocol}`, 'info');
+                };
+
+                recognition.start();
+            }
+        }
+
+        // Initialize diagnostics when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new VoiceDiagnostics();
+        });
+    </script>
+</body>
+</html> 

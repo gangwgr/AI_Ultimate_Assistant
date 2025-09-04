@@ -1,0 +1,507 @@
+[
+  {
+    "instruction": "Do I have any new unread emails?",
+    "input": "",
+    "output": "I'll check your unread emails for you. Let me search for emails marked as unread in your inbox.",
+    "category": "email_search",
+    "intent": "read_unread_emails",
+    "entities": {},
+    "created_at": "2025-07-22T18:35:49.154884",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Show me all emails marked as important",
+    "input": "",
+    "output": "I'll find all emails marked as important in your inbox. Let me search for emails with the IMPORTANT label.",
+    "category": "email_search",
+    "intent": "find_important_emails",
+    "entities": {},
+    "created_at": "2025-07-22T18:35:49.154909",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "List emails from John in the past week",
+    "input": "",
+    "output": "I'll search for emails from John sent in the past week. Let me filter by sender and date range.",
+    "category": "email_search",
+    "intent": "search_emails_by_sender",
+    "entities": {
+      "sender": "John",
+      "date_range": "past week"
+    },
+    "created_at": "2025-07-22T18:35:49.154910",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Are there any emails with attachments?",
+    "input": "",
+    "output": "I'll search for emails that have attachments. Let me check for emails with files, documents, or PDFs.",
+    "category": "email_search",
+    "intent": "find_attachments",
+    "entities": {},
+    "created_at": "2025-07-22T18:35:49.154912",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Find the last email from HR",
+    "input": "",
+    "output": "I'll find the most recent email from HR. Let me search for emails from HR and sort by date.",
+    "category": "email_search",
+    "intent": "search_emails_by_sender",
+    "entities": {
+      "sender": "HR"
+    },
+    "created_at": "2025-07-22T18:35:49.154913",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Any pending approvals in my inbox?",
+    "input": "",
+    "output": "I'll check for emails that need your approval or response. Let me search for pending items.",
+    "category": "email_search",
+    "intent": "find_pending_emails",
+    "entities": {},
+    "created_at": "2025-07-22T18:35:49.154914",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Show me flagged/starred emails",
+    "input": "",
+    "output": "I'll show you all flagged or starred emails. Let me search for emails with the IMPORTANT label.",
+    "category": "email_search",
+    "intent": "find_important_emails",
+    "entities": {},
+    "created_at": "2025-07-22T18:35:49.154914",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Summarize my recent emails from today",
+    "input": "",
+    "output": "I'll summarize all emails from today. Let me fetch today's emails and provide a summary.",
+    "category": "email_search",
+    "intent": "search_emails_by_date",
+    "entities": {
+      "date_range": "today"
+    },
+    "created_at": "2025-07-22T18:35:49.154915",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Reply to the latest email from Sarah confirming the meeting",
+    "input": "",
+    "output": "I'll help you reply to Sarah's latest email to confirm the meeting. Let me draft a professional response.",
+    "category": "email_composition",
+    "intent": "send_email",
+    "entities": {
+      "action": "reply",
+      "sender": "Sarah",
+      "subject": "meeting confirmation"
+    },
+    "created_at": "2025-07-22T18:35:49.154916",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Send an email to the team about the new project timeline",
+    "input": "",
+    "output": "I'll help you compose an email to the team about the project timeline. Let me create a professional message.",
+    "category": "email_composition",
+    "intent": "send_email",
+    "entities": {
+      "recipient": "team",
+      "subject": "project timeline"
+    },
+    "created_at": "2025-07-22T18:35:49.154916",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Forward this email to my manager with a note",
+    "input": "",
+    "output": "I'll help you forward the email to your manager with an additional note. Let me prepare the forwarded message.",
+    "category": "email_composition",
+    "intent": "send_email",
+    "entities": {
+      "action": "forward",
+      "recipient": "manager"
+    },
+    "created_at": "2025-07-22T18:35:49.154917",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Draft a thank-you email for the interview",
+    "input": "",
+    "output": "I'll help you draft a professional thank-you email for the interview. Let me create a polite and appreciative message.",
+    "category": "email_composition",
+    "intent": "use_email_template",
+    "entities": {
+      "template_type": "follow_up",
+      "context": "interview thank you"
+    },
+    "created_at": "2025-07-22T18:35:49.154918",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Resend the last email I sent to the client",
+    "input": "",
+    "output": "I'll help you resend the last email to the client. Let me find the previous email and prepare it for resending.",
+    "category": "email_composition",
+    "intent": "send_email",
+    "entities": {
+      "action": "resend",
+      "recipient": "client"
+    },
+    "created_at": "2025-07-22T18:35:49.154919",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Move all emails from GitHub to a folder named 'DevOps'",
+    "input": "",
+    "output": "I'll help you organize emails from GitHub into a 'DevOps' folder. Let me categorize these emails for you.",
+    "category": "email_organization",
+    "intent": "categorize_emails",
+    "entities": {
+      "category": "work",
+      "folder": "DevOps",
+      "sender": "GitHub"
+    },
+    "created_at": "2025-07-22T18:35:49.154919",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Tag emails from recruiters as 'Job-related'",
+    "input": "",
+    "output": "I'll help you tag emails from recruiters as 'Job-related'. Let me categorize these emails appropriately.",
+    "category": "email_organization",
+    "intent": "categorize_emails",
+    "entities": {
+      "category": "personal",
+      "tag": "Job-related",
+      "sender": "recruiters"
+    },
+    "created_at": "2025-07-22T18:35:49.154920",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Filter out marketing emails from my inbox",
+    "input": "",
+    "output": "I'll help you filter out marketing emails from your inbox. Let me identify and categorize these emails.",
+    "category": "email_organization",
+    "intent": "find_spam_emails",
+    "entities": {
+      "filter_type": "marketing"
+    },
+    "created_at": "2025-07-22T18:35:49.154921",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Categorize my emails by type",
+    "input": "",
+    "output": "I'll categorize your emails by type (work, personal, urgent, spam, meetings). Let me organize them for you.",
+    "category": "email_organization",
+    "intent": "categorize_emails",
+    "entities": {},
+    "created_at": "2025-07-22T18:35:49.154921",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Mark email #3 as read",
+    "input": "",
+    "output": "I'll mark email #3 as read for you. Let me update the email status.",
+    "category": "email_actions",
+    "intent": "mark_email_read",
+    "entities": {
+      "email_number": 3
+    },
+    "created_at": "2025-07-22T18:35:49.154922",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Delete all promotional emails from my inbox",
+    "input": "",
+    "output": "I'll help you identify and delete promotional emails from your inbox. Let me find these emails first.",
+    "category": "email_actions",
+    "intent": "find_spam_emails",
+    "entities": {
+      "action": "delete",
+      "type": "promotional"
+    },
+    "created_at": "2025-07-22T18:35:49.154923",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Mark the latest newsletter as spam",
+    "input": "",
+    "output": "I'll help you mark the latest newsletter as spam. Let me identify newsletter emails for you.",
+    "category": "email_actions",
+    "intent": "find_spam_emails",
+    "entities": {
+      "action": "mark_spam",
+      "type": "newsletter"
+    },
+    "created_at": "2025-07-22T18:35:49.154925",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Archive old emails from last month",
+    "input": "",
+    "output": "I'll help you archive old emails from last month. Let me find emails from that time period.",
+    "category": "email_actions",
+    "intent": "search_emails_by_date",
+    "entities": {
+      "date_range": "last month",
+      "action": "archive"
+    },
+    "created_at": "2025-07-22T18:35:49.154926",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Summarize all emails with project updates from this week",
+    "input": "",
+    "output": "I'll summarize all project update emails from this week. Let me analyze the content and provide key insights.",
+    "category": "email_analysis",
+    "intent": "search_emails_by_date",
+    "entities": {
+      "date_range": "this week",
+      "content": "project updates",
+      "action": "summarize"
+    },
+    "created_at": "2025-07-22T18:35:49.154926",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "What's the status of the invoice conversations?",
+    "input": "",
+    "output": "I'll analyze the invoice conversations and provide you with the current status. Let me search for invoice-related emails.",
+    "category": "email_analysis",
+    "intent": "search_emails",
+    "entities": {
+      "query": "invoice conversations",
+      "action": "analyze_status"
+    },
+    "created_at": "2025-07-22T18:35:49.154927",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Summarize this long email thread in a few bullet points",
+    "input": "",
+    "output": "I'll summarize this email thread into key bullet points. Let me analyze the conversation and extract the main points.",
+    "category": "email_analysis",
+    "intent": "summarize_email",
+    "entities": {
+      "format": "bullet points"
+    },
+    "created_at": "2025-07-22T18:35:49.154928",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Extract action items from email #2",
+    "input": "",
+    "output": "I'll extract action items from email #2. Let me analyze the content and identify tasks, deadlines, and follow-ups.",
+    "category": "email_analysis",
+    "intent": "extract_action_items",
+    "entities": {
+      "email_number": 2
+    },
+    "created_at": "2025-07-22T18:35:49.154929",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Schedule a meeting with Alex on Thursday at 2 PM",
+    "input": "",
+    "output": "I'll help you schedule a meeting with Alex on Thursday at 2 PM. Let me create a calendar event and send an invite.",
+    "category": "calendar_integration",
+    "intent": "create_event",
+    "entities": {
+      "attendee": "Alex",
+      "day": "Thursday",
+      "time": "2 PM"
+    },
+    "created_at": "2025-07-22T18:35:49.154929",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Create a calendar invite for tomorrow's team sync",
+    "input": "",
+    "output": "I'll create a calendar invite for tomorrow's team sync. Let me schedule the meeting and send invitations.",
+    "category": "calendar_integration",
+    "intent": "create_event",
+    "entities": {
+      "event": "team sync",
+      "day": "tomorrow"
+    },
+    "created_at": "2025-07-22T18:35:49.154930",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Send a meeting invite based on this email content",
+    "input": "",
+    "output": "I'll analyze the email content and create a meeting invite based on the details mentioned. Let me extract the meeting information.",
+    "category": "calendar_integration",
+    "intent": "use_email_template",
+    "entities": {
+      "template_type": "meeting_confirmation",
+      "source": "email_content"
+    },
+    "created_at": "2025-07-22T18:35:49.154931",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "List emails that have PDF attachments",
+    "input": "",
+    "output": "I'll find all emails that have PDF attachments. Let me search for emails with PDF files.",
+    "category": "attachment_management",
+    "intent": "find_attachments",
+    "entities": {
+      "file_type": "PDF"
+    },
+    "created_at": "2025-07-22T18:35:49.154932",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Find the email with the project report attached",
+    "input": "",
+    "output": "I'll find the email that has the project report attached. Let me search for emails with this specific attachment.",
+    "category": "attachment_management",
+    "intent": "find_attachments",
+    "entities": {
+      "attachment_name": "project report"
+    },
+    "created_at": "2025-07-22T18:35:49.154932",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Send me the document attached in the last email from Ravi",
+    "input": "",
+    "output": "I'll help you access the document attached in Ravi's last email. Let me find the email and extract the attachment.",
+    "category": "attachment_management",
+    "intent": "find_attachments",
+    "entities": {
+      "sender": "Ravi",
+      "action": "extract_attachment"
+    },
+    "created_at": "2025-07-22T18:35:49.154933",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Are there any suspicious or spam emails today?",
+    "input": "",
+    "output": "I'll check for suspicious or spam emails from today. Let me scan your inbox for potential spam.",
+    "category": "spam_filtering",
+    "intent": "find_spam_emails",
+    "entities": {
+      "date_range": "today"
+    },
+    "created_at": "2025-07-22T18:35:49.154934",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Block all emails from this sender",
+    "input": "",
+    "output": "I'll help you block all emails from this sender. Let me set up the blocking rule for you.",
+    "category": "spam_filtering",
+    "intent": "find_spam_emails",
+    "entities": {
+      "action": "block_sender"
+    },
+    "created_at": "2025-07-22T18:35:49.154934",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Report this email as phishing",
+    "input": "",
+    "output": "I'll help you report this email as phishing. Let me mark it appropriately and report it.",
+    "category": "spam_filtering",
+    "intent": "find_spam_emails",
+    "entities": {
+      "action": "report_phishing"
+    },
+    "created_at": "2025-07-22T18:35:49.154937",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Remind me to reply to John's email tomorrow",
+    "input": "",
+    "output": "I'll set a reminder for you to reply to John's email tomorrow. Let me create a calendar reminder.",
+    "category": "follow_up_management",
+    "intent": "generate_followup",
+    "entities": {
+      "sender": "John",
+      "reminder_date": "tomorrow"
+    },
+    "created_at": "2025-07-22T18:35:49.154938",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Draft a follow-up for the proposal email I sent last week",
+    "input": "",
+    "output": "I'll draft a follow-up email for the proposal you sent last week. Let me create a professional follow-up message.",
+    "category": "follow_up_management",
+    "intent": "generate_followup",
+    "entities": {
+      "context": "proposal",
+      "date": "last week"
+    },
+    "created_at": "2025-07-22T18:35:49.154939",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Check if the vendor replied to my quotation request",
+    "input": "",
+    "output": "I'll check if the vendor has replied to your quotation request. Let me search for responses from the vendor.",
+    "category": "follow_up_management",
+    "intent": "search_emails_by_sender",
+    "entities": {
+      "sender": "vendor",
+      "subject": "quotation request"
+    },
+    "created_at": "2025-07-22T18:35:49.154939",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Generate a follow-up email for email #1",
+    "input": "",
+    "output": "I'll generate a follow-up email for email #1. Let me create a professional follow-up based on the original email.",
+    "category": "follow_up_management",
+    "intent": "generate_followup",
+    "entities": {
+      "email_number": 1
+    },
+    "created_at": "2025-07-22T18:35:49.154940",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Use the meeting confirmation template",
+    "input": "",
+    "output": "I'll use the meeting confirmation template for you. Let me generate a professional meeting confirmation email.",
+    "category": "template_usage",
+    "intent": "use_email_template",
+    "entities": {
+      "template_type": "meeting_confirmation"
+    },
+    "created_at": "2025-07-22T18:35:49.154941",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Create a project update email using template",
+    "input": "",
+    "output": "I'll create a project update email using the project update template. Let me generate a structured project update.",
+    "category": "template_usage",
+    "intent": "use_email_template",
+    "entities": {
+      "template_type": "project_update"
+    },
+    "created_at": "2025-07-22T18:35:49.154941",
+    "model": "granite3.3-balanced-gmail-nlq"
+  },
+  {
+    "instruction": "Send a document request using template",
+    "input": "",
+    "output": "I'll send a document request using the document request template. Let me create a professional document request email.",
+    "category": "template_usage",
+    "intent": "use_email_template",
+    "entities": {
+      "template_type": "document_request"
+    },
+    "created_at": "2025-07-22T18:35:49.154942",
+    "model": "granite3.3-balanced-gmail-nlq"
+  }
+]

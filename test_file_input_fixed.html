@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed File Input Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ccc; }
+        .status { margin-top: 20px; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fixed File Input Test</h1>
+        <p>This tests the updated file input validation that should now accept .tar.gz files.</p>
+        
+        <div class="form-group">
+            <label for="fileInput">Select File:</label>
+            <input type="file" id="fileInput" 
+                   accept=".zip,.tar,.gz,.tgz,.bz2"
+                   onchange="validateAndLogFileSelection()">
+            <small>Accept attribute: .zip,.tar,.gz,.tgz,.bz2</small>
+        </div>
+        
+        <div id="status"></div>
+        <div id="debug"></div>
+        
+        <div class="info" style="margin-top: 20px;">
+            <h3>Test Files to Try:</h3>
+            <ul>
+                <li><code>test.zip</code> - Should work</li>
+                <li><code>test.tar</code> - Should work</li>
+                <li><code>test.tar.gz</code> - Should work (this was the problem)</li>
+                <li><code>test.tgz</code> - Should work</li>
+                <li><code>test.tar.bz2</code> - Should work</li>
+                <li><code>test.txt</code> - Should be rejected</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function validateAndLogFileSelection() {
+            const fileInput = document.getElementById('fileInput');
+            const status = document.getElementById('status');
+            const debug = document.getElementById('debug');
+            
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileName = file.name.toLowerCase();
+                
+                console.log('File selected:', {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    lastModified: new Date(file.lastModified).toLocaleString()
+                });
+                
+                // Validate file extension
+                const validExtensions = ['.zip', '.tar', '.tar.gz', '.tgz', '.tar.bz2'];
+                const isValidFile = validExtensions.some(ext => fileName.endsWith(ext));
+                
+                debug.innerHTML = `
+                    <div class="info">
+                        <strong>Debug Info:</strong><br>
+                        File name: ${file.name}<br>
+                        File size: ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                        File type: ${file.type || 'Unknown'}<br>
+                        Lowercase name: ${fileName}<br>
+                        Valid extensions: ${validExtensions.join(', ')}<br>
+                        Is valid: ${isValidFile}<br>
+                        Extension check: ${validExtensions.map(ext => `${ext}: ${fileName.endsWith(ext)}`).join(', ')}
+                    </div>
+                `;
+                
+                if (isValidFile) {
+                    status.innerHTML = `
+                        <div class="success">
+                            <strong>✅ File Accepted!</strong><br>
+                            Name: ${file.name}<br>
+                            Size: ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                            Type: ${file.type || 'Unknown'}<br>
+                            Extension: ${fileName.split('.').slice(-2).join('.')}
+                        </div>
+                    `;
+                } else {
+                    status.innerHTML = `
+                        <div class="error">
+                            <strong>❌ File Rejected!</strong><br>
+                            Name: ${file.name}<br>
+                            Reason: Invalid file type<br>
+                            Supported formats: .zip, .tar, .tar.gz, .tgz, .tar.bz2
+                        </div>
+                    `;
+                    fileInput.value = ''; // Clear the selection
+                }
+            } else {
+                status.innerHTML = '<div class="warning">No file selected</div>';
+                debug.innerHTML = '';
+            }
+        }
+    </script>
+</body>
+</html>

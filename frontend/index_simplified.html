@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Ultimate Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .chat-container {
+            height: 500px;
+            overflow-y: auto;
+        }
+        .message-bubble {
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .assistant-message {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 16px;
+            border-radius: 8px;
+            color: white;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">🤖 AI Ultimate Assistant</h1>
+                    <p class="text-gray-600 mt-2">Your intelligent assistant for emails, calendar, and more</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="connection-status" class="text-sm text-green-600">
+                        <i class="fas fa-circle"></i> Connected
+                    </div>
+                    <button id="settings-btn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chat Interface -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div id="chat-container" class="chat-container mb-4 p-4 bg-gray-50 rounded-lg">
+                <div class="text-center text-gray-500">
+                    <i class="fas fa-robot text-4xl mb-2"></i>
+                    <p>Ask me anything! I can help with emails, calendar, general questions, and more.</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <input type="text" id="message-input" 
+                       class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="Type your message here...">
+                <button id="send-btn" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+                <button id="voice-btn" class="bg-red-500 text-white px-4 py-3 rounded-lg hover:bg-red-600">
+                    <i class="fas fa-microphone"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button class="quick-action-btn" data-action="check-email">
+                    <i class="fas fa-envelope text-2xl mb-2"></i>
+                    <span>Check Email</span>
+                </button>
+                <button class="quick-action-btn" data-action="calendar">
+                    <i class="fas fa-calendar text-2xl mb-2"></i>
+                    <span>Calendar</span>
+                </button>
+                <button class="quick-action-btn" data-action="github">
+                    <i class="fab fa-github text-2xl mb-2"></i>
+                    <span>GitHub</span>
+                </button>
+                <button class="quick-action-btn" data-action="general">
+                    <i class="fas fa-question text-2xl mb-2"></i>
+                    <span>General Q&A</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Settings</h2>
+                    <button id="close-settings" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="font-semibold mb-2">AI Model</h3>
+                        <select id="ai-model" class="w-full p-2 border rounded">
+                            <option value="granite">Granite 3.3 Balanced</option>
+                            <option value="openai">OpenAI GPT</option>
+                            <option value="gemini">Google Gemini</option>
+                        </select>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-2">Voice Responses</h3>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="voice-enabled" class="mr-2">
+                            Enable voice responses
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AIAssistant {
+            constructor() {
+                this.websocket = null;
+                this.isConnected = false;
+                this.voiceEnabled = false;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.connectWebSocket();
+                this.showNotification('success', 'AI Assistant loaded successfully!');
+            }
+
+            setupEventListeners() {
+                // Send button
+                const sendBtn = document.getElementById('send-btn');
+                const messageInput = document.getElementById('message-input');
+                
+                sendBtn.addEventListener('click', () => this.sendMessage());
+                messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendMessage();
+                });
+
+                // Voice button
+                const voiceBtn = document.getElementById('voice-btn');
+                voiceBtn.addEventListener('click', () => this.toggleVoice());
+
+                // Settings
+                const settingsBtn = document.getElementById('settings-btn');
+                const closeSettings = document.getElementById('close-settings');
+                const settingsModal = document.getElementById('settings-modal');
+                
+                settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+                closeSettings.addEventListener('click', () => settingsModal.classList.add('hidden'));
+                settingsModal.addEventListener('click', (e) => {
+                    if (e.target === settingsModal) settingsModal.classList.add('hidden');
+                });
+
+                // Quick actions
+                document.querySelectorAll('.quick-action-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const action = btn.dataset.action;
+                        this.handleQuickAction(action);
+                    });
+                });
+            }
+
+            connectWebSocket() {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsUrl = `${protocol}//${window.location.host}/ws`;
+                
+                this.websocket = new WebSocket(wsUrl);
+                
+                this.websocket.onopen = () => {
+                    console.log('WebSocket connected');
+                    this.isConnected = true;
+                    this.updateConnectionStatus(true);
+                };
+                
+                this.websocket.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        this.addMessage(data.response || data, 'assistant');
+                    } catch (error) {
+                        this.addMessage(event.data, 'assistant');
+                    }
+                };
+                
+                this.websocket.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    this.updateConnectionStatus(false);
+                };
+                
+                this.websocket.onclose = () => {
+                    console.log('WebSocket disconnected');
+                    this.isConnected = false;
+                    this.updateConnectionStatus(false);
+                    setTimeout(() => this.connectWebSocket(), 3000);
+                };
+            }
+
+            sendMessage() {
+                const messageInput = document.getElementById('message-input');
+                const message = messageInput.value.trim();
+                
+                if (!message) return;
+                
+                this.addMessage(message, 'user');
+                messageInput.value = '';
+                
+                if (this.isConnected && this.websocket) {
+                    this.websocket.send(message);
+                } else {
+                    // Fallback to HTTP API
+                    this.sendViaHTTP(message);
+                }
+            }
+
+            async sendViaHTTP(message) {
+                try {
+                    const response = await fetch('/api/agent/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message })
+                    });
+                    
+                    const data = await response.json();
+                    this.addMessage(data.response || 'Sorry, I encountered an error.', 'assistant');
+                } catch (error) {
+                    this.addMessage('Sorry, I cannot connect to the server right now.', 'assistant');
+                }
+            }
+
+            addMessage(message, sender) {
+                const chatContainer = document.getElementById('chat-container');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `mb-4 ${sender === 'user' ? 'text-right' : 'text-left'}`;
+                
+                const bubble = document.createElement('div');
+                bubble.className = `inline-block p-3 rounded-lg text-white message-bubble ${
+                    sender === 'user' ? 'user-message' : 'assistant-message'
+                }`;
+                bubble.textContent = message;
+                
+                messageDiv.appendChild(bubble);
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            handleQuickAction(action) {
+                const actions = {
+                    'check-email': 'Check my recent emails',
+                    'calendar': 'Show my calendar for today',
+                    'github': 'Show my GitHub repositories',
+                    'general': 'I have a general question'
+                };
+                
+                const message = actions[action] || 'Help me with this';
+                document.getElementById('message-input').value = message;
+                this.sendMessage();
+            }
+
+            toggleVoice() {
+                this.voiceEnabled = !this.voiceEnabled;
+                const voiceBtn = document.getElementById('voice-btn');
+                
+                if (this.voiceEnabled) {
+                    voiceBtn.classList.add('bg-green-500');
+                    voiceBtn.classList.remove('bg-red-500');
+                    this.showNotification('info', 'Voice mode enabled');
+                } else {
+                    voiceBtn.classList.remove('bg-green-500');
+                    voiceBtn.classList.add('bg-red-500');
+                    this.showNotification('info', 'Voice mode disabled');
+                }
+            }
+
+            updateConnectionStatus(connected) {
+                const status = document.getElementById('connection-status');
+                if (connected) {
+                    status.innerHTML = '<i class="fas fa-circle text-green-500"></i> Connected';
+                    status.className = 'text-sm text-green-600';
+                } else {
+                    status.innerHTML = '<i class="fas fa-circle text-red-500"></i> Disconnected';
+                    status.className = 'text-sm text-red-600';
+                }
+            }
+
+            showNotification(type, message) {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type === 'success' ? 'bg-green-500' : 
+                                                   type === 'error' ? 'bg-red-500' : 'bg-blue-500'}`;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.aiAssistant = new AIAssistant();
+        });
+    </script>
+</body>
+</html> 

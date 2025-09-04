@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Ultimate Assistant - Multi-Model Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .model-card {
+            transition: all 0.3s ease;
+        }
+        .model-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .response-comparison {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .model-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .openai-badge { background: #10b981; color: white; }
+        .granite-badge { background: #3b82f6; color: white; }
+        .ollama-badge { background: #f59e0b; color: white; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-brain text-purple-500"></i> Multi-Model AI Demo
+            </h1>
+            <p class="text-gray-600">Experience the power of multiple AI models working together</p>
+            
+            <!-- Navigation Links -->
+            <div class="mt-4 flex justify-center space-x-6">
+                <a href="/" class="text-blue-500 hover:text-blue-700 font-medium">
+                    <i class="fas fa-home mr-1"></i>Home
+                </a>
+                <a href="/frontend/model_trainer.html" class="text-purple-500 hover:text-purple-700 font-medium">
+                    <i class="fas fa-brain mr-1"></i>Model Trainer
+                </a>
+                <a href="/frontend/pr_reviewer.html" class="text-indigo-500 hover:text-indigo-700 font-medium">
+                    <i class="fas fa-code-branch mr-1"></i>PR Reviewer
+                </a>
+                <a href="/frontend/multi_model_demo.html" class="text-green-500 hover:text-green-700 font-medium">
+                    <i class="fas fa-chart-bar mr-1"></i>Multi-Model Demo
+                </a>
+                <a href="/docs" class="text-orange-500 hover:text-orange-700 font-medium" target="_blank">
+                    <i class="fas fa-book mr-1"></i>API Docs
+                </a>
+            </div>
+        </div>
+
+        <!-- Available Models Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">
+                <i class="fas fa-robot text-blue-500"></i> Available AI Models
+            </h2>
+            <div id="models-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Models will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Model Selection & Testing -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Smart Chat Section -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4">
+                    <i class="fas fa-magic text-purple-500"></i> Smart Chat
+                </h3>
+                <p class="text-gray-600 mb-4">Let AI choose the best model for your task</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                        <textarea id="smart-message" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  rows="3"
+                                  placeholder="Ask me anything... I'll choose the best model for you!"></textarea>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Task Complexity</label>
+                            <select id="complexity" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="simple">Simple</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="complex">Complex</option>
+                                <option value="creative">Creative</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Model Preference</label>
+                            <select id="model-preference" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="">Auto-select</option>
+                                <option value="openai_gpt">OpenAI GPT</option>
+                                <option value="granite">IBM Granite</option>
+                                <option value="ollama">Ollama</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="use-ensemble" class="mr-2">
+                            <span class="text-sm">Use Multiple Models (Ensemble)</span>
+                        </label>
+                    </div>
+                    
+                    <button id="smart-chat-btn" 
+                            class="w-full bg-purple-500 text-white py-2 px-4 rounded-md hover:bg-purple-600 transition-colors">
+                        <i class="fas fa-paper-plane mr-2"></i>Send Smart Message
+                    </button>
+                </div>
+
+                <!-- Smart Response -->
+                <div id="smart-response" class="mt-6 hidden">
+                    <h4 class="font-semibold mb-2">Response:</h4>
+                    <div class="bg-gray-50 p-4 rounded-md">
+                        <div id="smart-response-content"></div>
+                        <div class="mt-2 text-sm text-gray-600">
+                            <span class="font-medium">Model Used:</span> <span id="smart-model-used"></span> |
+                            <span class="font-medium">Complexity:</span> <span id="smart-complexity"></span> |
+                            <span class="font-medium">Confidence:</span> <span id="smart-confidence"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Comparison Section -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4">
+                    <i class="fas fa-balance-scale text-green-500"></i> Model Comparison
+                </h3>
+                <p class="text-gray-600 mb-4">Compare responses from all available models</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Test Message</label>
+                        <textarea id="compare-message" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                  rows="3"
+                                  placeholder="Enter a message to compare across all models"></textarea>
+                    </div>
+                    
+                    <button id="compare-btn" 
+                            class="w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors">
+                        <i class="fas fa-search mr-2"></i>Compare Models
+                    </button>
+                </div>
+
+                <!-- Comparison Results -->
+                <div id="comparison-results" class="mt-6 hidden">
+                    <h4 class="font-semibold mb-2">Model Responses:</h4>
+                    <div id="comparison-content" class="response-comparison space-y-3">
+                        <!-- Responses will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benchmark Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-8">
+            <h3 class="text-xl font-semibold mb-4">
+                <i class="fas fa-stopwatch text-orange-500"></i> Model Benchmarking
+            </h3>
+            <p class="text-gray-600 mb-4">Test model performance with predefined queries</p>
+            
+            <div class="flex space-x-4 mb-4">
+                <button id="benchmark-btn" 
+                        class="bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 transition-colors">
+                    <i class="fas fa-play mr-2"></i>Run Benchmark
+                </button>
+                <button id="custom-benchmark-btn" 
+                        class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors">
+                    <i class="fas fa-edit mr-2"></i>Custom Test
+                </button>
+            </div>
+
+            <!-- Benchmark Results -->
+            <div id="benchmark-results" class="hidden">
+                <h4 class="font-semibold mb-2">Benchmark Results:</h4>
+                <div id="benchmark-content" class="overflow-x-auto">
+                    <!-- Benchmark table will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Details Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-8">
+            <h3 class="text-xl font-semibold mb-4">
+                <i class="fas fa-info-circle text-blue-500"></i> Model Routing & Capabilities
+            </h3>
+            <div id="model-routing" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Routing information will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class MultiModelDemo {
+            constructor() {
+                this.apiBase = '';
+                this.init();
+            }
+
+            async init() {
+                await this.loadModels();
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                document.getElementById('smart-chat-btn').addEventListener('click', () => this.sendSmartMessage());
+                document.getElementById('compare-btn').addEventListener('click', () => this.compareModels());
+                document.getElementById('benchmark-btn').addEventListener('click', () => this.runBenchmark());
+                document.getElementById('custom-benchmark-btn').addEventListener('click', () => this.runCustomBenchmark());
+            }
+
+            async loadModels() {
+                try {
+                    const response = await fetch('/api/agent/models');
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.displayModels(data.models);
+                        this.displayRouting(data.model_routing);
+                    }
+                } catch (error) {
+                    console.error('Error loading models:', error);
+                }
+            }
+
+            displayModels(models) {
+                const grid = document.getElementById('models-grid');
+                grid.innerHTML = '';
+
+                Object.entries(models).forEach(([modelType, config]) => {
+                    const card = document.createElement('div');
+                    card.className = 'model-card bg-gray-50 p-4 rounded-lg border';
+                    
+                    const statusColor = config.status === 'initialized' || config.status === 'loaded' ? 'green' : 'yellow';
+                    const badgeClass = `${modelType.replace('_', '-')}-badge`;
+                    
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <h4 class="font-semibold text-lg">${modelType.replace('_', ' ').toUpperCase()}</h4>
+                            <span class="model-badge ${badgeClass}">${config.status}</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-2"><strong>Model:</strong> ${config.model_name}</p>
+                        <div class="mb-2">
+                            <p class="text-sm font-medium text-gray-700">Strengths:</p>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                ${config.strengths.map(s => `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">${s}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Best For:</p>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                ${config.best_for.map(b => `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">${b}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(card);
+                });
+            }
+
+            displayRouting(routing) {
+                const container = document.getElementById('model-routing');
+                container.innerHTML = '';
+
+                // Task routing
+                const routingCard = document.createElement('div');
+                routingCard.innerHTML = `
+                    <h4 class="font-semibold mb-3">Task-to-Model Routing</h4>
+                    <div class="space-y-2">
+                        ${Object.entries(routing).map(([task, models]) => `
+                            <div class="flex justify-between items-center py-2 border-b">
+                                <span class="font-medium">${task.replace('_', ' ')}</span>
+                                <div class="flex space-x-1">
+                                    ${models.map((model, index) => `
+                                        <span class="model-badge ${model.replace('_', '-')}-badge" style="opacity: ${1 - index * 0.2}">
+                                            ${index + 1}. ${model}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                container.appendChild(routingCard);
+            }
+
+            async sendSmartMessage() {
+                const message = document.getElementById('smart-message').value.trim();
+                if (!message) return;
+
+                const button = document.getElementById('smart-chat-btn');
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+
+                try {
+                    const response = await fetch('/api/agent/chat-smart', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message,
+                            complexity: document.getElementById('complexity').value,
+                            model_preference: document.getElementById('model-preference').value || null,
+                            use_ensemble: document.getElementById('use-ensemble').checked
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.displaySmartResponse(data);
+                    } else {
+                        throw new Error('Failed to get response');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error sending message: ' + error.message);
+                } finally {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send Smart Message';
+                }
+            }
+
+            displaySmartResponse(data) {
+                const responseDiv = document.getElementById('smart-response');
+                document.getElementById('smart-response-content').textContent = data.response;
+                document.getElementById('smart-model-used').textContent = data.model_used;
+                document.getElementById('smart-complexity').textContent = data.complexity;
+                document.getElementById('smart-confidence').textContent = (data.confidence * 100).toFixed(1) + '%';
+                
+                responseDiv.classList.remove('hidden');
+            }
+
+            async compareModels() {
+                const message = document.getElementById('compare-message').value.trim();
+                if (!message) return;
+
+                const button = document.getElementById('compare-btn');
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Comparing...';
+
+                try {
+                    const response = await fetch('/api/agent/models/compare', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.displayComparison(data);
+                    } else {
+                        throw new Error('Failed to compare models');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error comparing models: ' + error.message);
+                } finally {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-search mr-2"></i>Compare Models';
+                }
+            }
+
+            displayComparison(data) {
+                const container = document.getElementById('comparison-content');
+                container.innerHTML = '';
+
+                Object.entries(data.responses).forEach(([model, response]) => {
+                    const responseCard = document.createElement('div');
+                    responseCard.className = 'bg-gray-50 p-4 rounded-md border-l-4 border-blue-500';
+                    
+                    const isBest = model === data.best_model;
+                    const badgeClass = `${model.replace('_', '-')}-badge`;
+                    
+                    responseCard.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="model-badge ${badgeClass}">${model}</span>
+                            ${isBest ? '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium">Best Response</span>' : ''}
+                        </div>
+                        <p class="text-gray-800">${response}</p>
+                    `;
+                    
+                    container.appendChild(responseCard);
+                });
+
+                document.getElementById('comparison-results').classList.remove('hidden');
+            }
+
+            async runBenchmark() {
+                const button = document.getElementById('benchmark-btn');
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Running...';
+
+                try {
+                    const response = await fetch('/api/agent/models/benchmark', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify([])  // Use default queries
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.displayBenchmark(data);
+                    } else {
+                        throw new Error('Failed to run benchmark');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error running benchmark: ' + error.message);
+                } finally {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-play mr-2"></i>Run Benchmark';
+                }
+            }
+
+            displayBenchmark(data) {
+                const container = document.getElementById('benchmark-content');
+                const results = data.benchmark_results;
+
+                const table = document.createElement('table');
+                table.className = 'w-full table-auto border-collapse border border-gray-300';
+                
+                table.innerHTML = `
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-300 px-4 py-2">Model</th>
+                            <th class="border border-gray-300 px-4 py-2">Success Rate</th>
+                            <th class="border border-gray-300 px-4 py-2">Avg Duration (s)</th>
+                            <th class="border border-gray-300 px-4 py-2">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.entries(results).map(([model, result]) => `
+                            <tr>
+                                <td class="border border-gray-300 px-4 py-2 font-medium">${model}</td>
+                                <td class="border border-gray-300 px-4 py-2 text-center">${(result.success_rate * 100).toFixed(1)}%</td>
+                                <td class="border border-gray-300 px-4 py-2 text-center">${result.avg_duration.toFixed(2)}</td>
+                                <td class="border border-gray-300 px-4 py-2 text-center">
+                                    <span class="bg-${result.success_rate > 0.5 ? 'green' : 'red'}-100 text-${result.success_rate > 0.5 ? 'green' : 'red'}-800 px-2 py-1 rounded text-xs">
+                                        ${result.success_rate > 0.5 ? 'Good' : 'Issues'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+
+                container.innerHTML = '';
+                container.appendChild(table);
+                document.getElementById('benchmark-results').classList.remove('hidden');
+            }
+
+            runCustomBenchmark() {
+                const queries = prompt('Enter test queries (comma-separated):');
+                if (queries) {
+                    const queryList = queries.split(',').map(q => q.trim()).filter(q => q);
+                    this.runBenchmarkWithQueries(queryList);
+                }
+            }
+
+            async runBenchmarkWithQueries(queries) {
+                try {
+                    const response = await fetch('/api/agent/models/benchmark', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(queries)
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.displayBenchmark(data);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error running custom benchmark: ' + error.message);
+                }
+            }
+        }
+
+        // Initialize the demo when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new MultiModelDemo();
+        });
+    </script>
+</body>
+</html> 

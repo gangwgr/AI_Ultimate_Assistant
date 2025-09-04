@@ -1,0 +1,19 @@
+data:
+  max_length: 512
+  padding: max_length
+  truncation: true
+
+model:
+  base_model: ibm-granite/granite-3.3-2b-instruct
+  model_type: causal_lm
+
+training:
+  batch_size: 1
+  epochs: 3
+  gradient_accumulation_steps: 4
+  learning_rate: 2.0e-05
+  logging_steps: 5
+  output_dir: models/granite3.3-kms-trained
+  save_steps: 100
+  warmup_steps: 10
+  weight_decay: 0.01 

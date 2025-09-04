@@ -1,0 +1,45 @@
+# OpenShift Troubleshooting Guide
+
+## Pod Issues
+
+### Pods Stuck in Pending State
+When pods are stuck in Pending state, check:
+1. Node resource availability (CPU/memory)
+2. Pod resource requests vs available resources
+3. Node selectors and affinity rules
+4. Persistent volume claims status
+5. Image pull secrets and registry access
+
+### ImagePullBackOff Errors
+For image pull failures:
+1. Verify image name and tag
+2. Check registry accessibility
+3. Validate pull secrets
+4. Review network connectivity
+5. Check registry authentication
+
+## Cluster Operators
+
+### Degraded Operators
+To troubleshoot degraded cluster operators:
+1. Check operator status with `oc get co`
+2. Review operator conditions
+3. Check operator pod logs
+4. Verify operator configuration
+5. Check related resources
+
+## etcd Issues
+
+### Common etcd Problems
+- Disk space exhaustion
+- Network latency between members
+- Corrupted data
+- Certificate expiration
+- Insufficient IOPS
+
+### etcd Troubleshooting Steps
+1. Check etcd member health
+2. Review etcd logs
+3. Verify disk performance
+4. Check network connectivity
+5. Validate certificates

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Loading Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        select { width: 100%; padding: 8px; margin: 5px 0; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Model Loading Test</h1>
+    
+    <div class="test-section info">
+        <h3>🔍 Testing Model Loading</h3>
+        <button onclick="testModelLoading()">Test Model Loading</button>
+        <button onclick="testContinuousLearning()">Test Continuous Learning</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>📊 API Response</h3>
+        <div id="api-response">Click "Test Model Loading" to see results...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🎯 Continuous Learning Select</h3>
+        <select id="continuous-model-select">
+            <option value="">Select model to update...</option>
+        </select>
+        <div id="select-status">Select will be populated after test...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>📝 Console Logs</h3>
+        <pre id="console-logs">Console logs will appear here...</pre>
+    </div>
+
+    <script>
+        // Capture console logs
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logsDiv = document.getElementById('console-logs');
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            logsDiv.textContent += 'LOG: ' + args.join(' ') + '\n';
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            logsDiv.textContent += 'ERROR: ' + args.join(' ') + '\n';
+        };
+
+        async function testModelLoading() {
+            const apiResponseDiv = document.getElementById('api-response');
+            apiResponseDiv.innerHTML = '<div class="info">🔄 Testing API call...</div>';
+            
+            try {
+                const response = await fetch('/api/models/available', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'list' })
+                });
+                
+                if (response.ok) {
+                    const models = await response.json();
+                    apiResponseDiv.innerHTML = `
+                        <div class="success">
+                            ✅ API call successful!<br>
+                            <strong>Models found:</strong> ${models.length}<br>
+                            <strong>Models:</strong> ${models.join(', ')}
+                        </div>
+                    `;
+                    
+                    // Test the displayModels function
+                    displayModels(models);
+                    
+                } else {
+                    apiResponseDiv.innerHTML = `
+                        <div class="error">
+                            ❌ API call failed<br>
+                            Status: ${response.status}<br>
+                            Status Text: ${response.statusText}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                apiResponseDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function displayModels(models) {
+            console.log('displayModels called with:', models);
+            
+            // Store models for use in continuous learning
+            window.models = models;
+            
+            const select = document.getElementById('continuous-model-select');
+            const statusDiv = document.getElementById('select-status');
+            
+            // Clear existing content
+            select.innerHTML = '<option value="">Select model to update...</option>';
+            
+            if (models && models.length > 0) {
+                models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    select.appendChild(option);
+                });
+                
+                statusDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Select populated with ${models.length} models
+                    </div>
+                `;
+            } else {
+                statusDiv.innerHTML = `
+                    <div class="error">
+                        ❌ No models available
+                    </div>
+                `;
+            }
+        }
+
+        function testContinuousLearning() {
+            const select = document.getElementById('continuous-model-select');
+            const statusDiv = document.getElementById('select-status');
+            
+            if (select.options.length > 1) {
+                statusDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Continuous learning select is working!<br>
+                        Available options: ${select.options.length - 1} models
+                    </div>
+                `;
+            } else {
+                statusDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Continuous learning select is empty
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run test on page load
+        window.addEventListener('load', () => {
+            console.log('Page loaded, running initial test...');
+            testModelLoading();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Report Portal Cache</title>
+</head>
+<body>
+    <h1>Report Portal Cache Clearer</h1>
+    <p>Click the button below to clear the Report Portal configuration cache:</p>
+    <button onclick="clearCache()">Clear Cache</button>
+    <div id="result"></div>
+
+    <script>
+        function clearCache() {
+            try {
+                localStorage.removeItem('rp-config');
+                document.getElementById('result').innerHTML = '<p style="color: green;">✅ Cache cleared successfully!</p>';
+                document.getElementById('result').innerHTML += '<p>You can now go back to the Report Portal interface and the SSL verification will be unchecked by default.</p>';
+            } catch (error) {
+                document.getElementById('result').innerHTML = '<p style="color: red;">❌ Error clearing cache: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "unread_emails": [
+    "I'll check your unread emails for you. Let me search for emails marked as unread in your inbox.",
+    "Let me find all your unread emails and show you what needs attention.",
+    "I'll scan your inbox for any new unread messages."
+  ],
+  "important_emails": [
+    "I'll find all emails marked as important in your inbox. Let me search for emails with the IMPORTANT label.",
+    "Let me show you all the important emails that need your attention.",
+    "I'll search for flagged and starred emails in your inbox."
+  ],
+  "sender_search": [
+    "I'll search for emails from {sender} in your inbox.",
+    "Let me find all messages from {sender} for you.",
+    "I'll show you emails from {sender}."
+  ],
+  "date_search": [
+    "I'll find emails from {date_range} for you.",
+    "Let me search for emails from {date_range}.",
+    "I'll show you {date_range} emails."
+  ],
+  "attachment_search": [
+    "I'll search for emails that have attachments. Let me check for emails with files, documents, or PDFs.",
+    "Let me find all emails with attachments for you.",
+    "I'll scan for emails containing files or documents."
+  ],
+  "pending_emails": [
+    "I'll check for emails that need your attention. Let me search for pending items.",
+    "Let me find emails that require a response or approval.",
+    "I'll show you emails that need your attention."
+  ],
+  "spam_emails": [
+    "I'll check for suspicious or spam emails in your inbox.",
+    "Let me scan for potential spam or promotional emails.",
+    "I'll search for emails that might be spam."
+  ]
+}

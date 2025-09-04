@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Must-Gather Upload Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ccc; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .status { margin-top: 20px; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Must-Gather Upload Debug</h1>
+        
+        <form id="uploadForm">
+            <div class="form-group">
+                <label for="clusterName">Cluster Name (Optional):</label>
+                <input type="text" id="clusterName" name="clusterName" placeholder="Enter cluster name">
+            </div>
+            
+            <div class="form-group">
+                <label for="mustGatherFile">Must-Gather File:</label>
+                <input type="file" id="mustGatherFile" name="mustGatherFile" 
+                       accept=".zip,.tar,.tar.gz,.tgz" onchange="logFileInfo()">
+                <small>Accepted formats: .zip, .tar, .tar.gz, .tgz</small>
+            </div>
+            
+            <button type="submit">Upload and Analyze</button>
+        </form>
+        
+        <div id="status"></div>
+        <div id="debug"></div>
+    </div>
+
+    <script>
+        function logFileInfo() {
+            const fileInput = document.getElementById('mustGatherFile');
+            const debug = document.getElementById('debug');
+            
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                debug.innerHTML = `
+                    <div class="info">
+                        <strong>File Info:</strong><br>
+                        Name: ${file.name}<br>
+                        Size: ${file.size} bytes<br>
+                        Type: ${file.type}<br>
+                        Last Modified: ${new Date(file.lastModified).toLocaleString()}
+                    </div>
+                `;
+            } else {
+                debug.innerHTML = '<div class="error">No file selected</div>';
+            }
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const status = document.getElementById('status');
+            const fileInput = document.getElementById('mustGatherFile');
+            const clusterNameInput = document.getElementById('clusterName');
+            
+            if (!fileInput.files[0]) {
+                status.innerHTML = '<div class="error">Please select a file</div>';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            status.innerHTML = '<div class="info">Uploading file...</div>';
+            
+            try {
+                const formData = new FormData();
+                formData.append('must_gather_file', file);
+                
+                if (clusterNameInput.value) {
+                    formData.append('cluster_name', clusterNameInput.value);
+                }
+                
+                console.log('Uploading file:', file.name);
+                console.log('FormData entries:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(key, value);
+                }
+                
+                const response = await fetch('/api/must-gather/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                const result = await response.json();
+                console.log('Response data:', result);
+                
+                if (response.ok) {
+                    status.innerHTML = `
+                        <div class="success">
+                            <strong>Upload Successful!</strong><br>
+                            Status: ${result.status}<br>
+                            Issues Found: ${result.analysis?.issues_count || 0}<br>
+                            Cluster: ${result.cluster_name || 'Unknown'}
+                        </div>
+                    `;
+                } else {
+                    status.innerHTML = `
+                        <div class="error">
+                            <strong>Upload Failed!</strong><br>
+                            Status: ${response.status}<br>
+                            Error: ${result.detail || 'Unknown error'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                status.innerHTML = `
+                    <div class="error">
+                        <strong>Network Error!</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

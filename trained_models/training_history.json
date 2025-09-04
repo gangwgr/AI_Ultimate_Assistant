@@ -1,0 +1,41 @@
+[
+  {
+    "timestamp": "2025-07-23T11:40:11.566765",
+    "base_model": "granite3.3-balanced",
+    "output_model": "granite3.3-balanced-enhanced",
+    "training_examples": 25,
+    "categories": [
+      "email_queries",
+      "github_queries",
+      "openshift_queries",
+      "jira_queries"
+    ],
+    "success": true
+  },
+  {
+    "timestamp": "2025-07-23T11:44:49.321075",
+    "base_model": "granite3.3-balanced:latest",
+    "output_model": "granite3.3-balanced-enhanced",
+    "training_examples": 50,
+    "categories": [
+      "openshift_queries",
+      "email_queries",
+      "github_queries",
+      "jira_queries"
+    ],
+    "success": true
+  },
+  {
+    "timestamp": "2025-07-23T12:22:35.793082",
+    "base_model": "granite3.3-balanced:latest",
+    "output_model": "granite3.3-balanced-enhanced",
+    "training_examples": 66,
+    "categories": [
+      "email_queries",
+      "openshift_queries",
+      "github_queries",
+      "jira_queries"
+    ],
+    "success": true
+  }
+]

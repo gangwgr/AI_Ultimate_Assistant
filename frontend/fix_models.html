@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Model Loading</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .container { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .success { background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .info { background: #d1ecf1; color: #0c5460; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        select { width: 100%; padding: 8px; margin: 10px 0; border-radius: 4px; border: 1px solid #ddd; }
+        .model-list { background: white; padding: 15px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Fix Model Loading Issue</h1>
+    
+    <div class="container">
+        <h2>Current Status</h2>
+        <div class="info">
+            ✅ <strong>Backend is running perfectly!</strong><br>
+            ✅ <strong>Enhanced model is active:</strong> granite3.3-balanced:latest<br>
+            ✅ <strong>Model switching API works:</strong> All endpoints returning 200 OK<br>
+            ✅ <strong>Email functionality works:</strong> Successfully sent test email<br>
+            ⚠️ <strong>UI Issue:</strong> Main frontend shows "Loading models..." instead of actual models
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Available Models (API Response)</h2>
+        <div id="api-results" class="model-list">
+            <p>Loading...</p>
+        </div>
+        <button onclick="loadModelsFromAPI()">🔄 Refresh Models from API</button>
+    </div>
+
+    <div class="container">
+        <h2>Model Switching Test</h2>
+        <select id="model-select">
+            <option value="">Select a model to test switching...</option>
+        </select>
+        <button onclick="testModelSwitch()">🔄 Test Model Switch</button>
+        <div id="switch-results"></div>
+    </div>
+
+    <div class="container">
+        <h2>Fix Instructions</h2>
+        <div class="info">
+            <h3>Option 1: Use Debug Page (Recommended)</h3>
+            <p>Open the debug page which works perfectly:</p>
+            <button onclick="window.open('/frontend/debug_models.html', '_blank')">Open Debug Page</button>
+            
+            <h3>Option 2: Manual Fix</h3>
+            <p>If you want to fix the main UI:</p>
+            <ol>
+                <li>Open browser developer tools (F12)</li>
+                <li>Go to Console tab</li>
+                <li>Run this command: <code>window.aiAssistant.loadAvailableModels()</code></li>
+                <li>This should populate the model dropdown</li>
+            </ol>
+            
+            <h3>Option 3: Refresh the Page</h3>
+            <p>Sometimes a simple page refresh fixes the timing issue:</p>
+            <button onclick="location.reload()">🔄 Refresh Page</button>
+        </div>
+    </div>
+
+    <script>
+        async function loadModelsFromAPI() {
+            const resultsDiv = document.getElementById('api-results');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch('/api/models/available', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'list' })
+                });
+                
+                if (response.ok) {
+                    const models = await response.json();
+                    let html = '<h3>✅ API Response Success:</h3>';
+                    html += '<ul>';
+                    models.forEach(model => {
+                        html += `<li>🤖 ${model}</li>`;
+                    });
+                    html += '</ul>';
+                    html += `<p><strong>Total:</strong> ${models.length} models available</p>`;
+                    resultsDiv.innerHTML = html;
+                    
+                    // Update the model select dropdown
+                    updateModelSelect(models);
+                    
+                } else {
+                    resultsDiv.innerHTML = `<div class="error">❌ API Error: ${response.status}</div>`;
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+
+        function updateModelSelect(models) {
+            const select = document.getElementById('model-select');
+            select.innerHTML = '<option value="">Select a model to test switching...</option>';
+            
+            // Add external providers
+            const externalProviders = [
+                { value: 'gemini', text: 'Google Gemini 2.5 Flash' },
+                { value: 'openai', text: 'OpenAI GPT-4' }
+            ];
+            
+            externalProviders.forEach(provider => {
+                const option = document.createElement('option');
+                option.value = provider.value;
+                option.textContent = provider.text;
+                select.appendChild(option);
+            });
+            
+            // Add separator
+            if (models.length > 0) {
+                const separator = document.createElement('option');
+                separator.disabled = true;
+                separator.textContent = '────────── Ollama Models ──────────';
+                select.appendChild(separator);
+            }
+            
+            // Add Ollama models
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = `🤖 ${model}`;
+                select.appendChild(option);
+            });
+        }
+
+        async function testModelSwitch() {
+            const selectedModel = document.getElementById('model-select').value;
+            const resultsDiv = document.getElementById('switch-results');
+            
+            if (!selectedModel) {
+                resultsDiv.innerHTML = '<div class="error">❌ Please select a model first</div>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<div class="info">🔄 Testing model switch...</div>';
+            
+            try {
+                // Map model names to providers
+                let provider = selectedModel;
+                if (selectedModel.includes('granite3.3') || selectedModel.includes('deepseek') || 
+                    selectedModel.includes('codellama') || selectedModel.includes('mistral') || 
+                    selectedModel.includes('llama') || selectedModel.includes('openshift')) {
+                    provider = 'ollama';
+                }
+                
+                const response = await fetch('/api/agent/switch-model', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider: provider })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultsDiv.innerHTML = `<div class="success">✅ Successfully switched to: ${data.new_model}</div>`;
+                } else {
+                    const errorText = await response.text();
+                    resultsDiv.innerHTML = `<div class="error">❌ Switch failed: ${response.status} - ${errorText}</div>`;
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Network error: ${error.message}</div>`;
+            }
+        }
+
+        // Auto-load models when page loads
+        window.addEventListener('load', () => {
+            setTimeout(loadModelsFromAPI, 1000);
+        });
+    </script>
+</body>
+</html> 

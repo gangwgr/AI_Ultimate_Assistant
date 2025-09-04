@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jira Manager - AI Ultimate Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">🎫 Jira Manager</h1>
+            <div class="flex space-x-4">
+                <button id="testConnection" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                    Test Connection
+                </button>
+                <button id="refreshIssues" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                    Refresh Issues
+                </button>
+            </div>
+        </div>
+
+        <!-- Connection Status -->
+        <div id="connectionStatus" class="mb-8 p-4 bg-white rounded-lg shadow hidden">
+            <!-- Will be populated by JavaScript -->
+        </div>
+
+        <!-- Credentials Form -->
+        <div class="bg-white rounded-lg shadow mb-8 p-6">
+            <h2 class="text-xl font-semibold mb-4">Jira Credentials</h2>
+            <form id="credentialsForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Server URL</label>
+                    <input type="url" name="server_url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="https://issues.redhat.com" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" name="username" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Your Jira username" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">API Token</label>
+                    <input type="password" name="api_token" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Your Jira API token" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Authentication Method</label>
+                    <select name="auth_method" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="basic">Basic Auth</option>
+                        <option value="pat_bearer">Personal Access Token (Bearer)</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg">
+                    Save Credentials
+                </button>
+            </form>
+        </div>
+
+        <!-- Issues List -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">My Issues</h2>
+                <div class="flex space-x-4">
+                    <select id="issueType" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="assigned">Assigned to Me</option>
+                        <option value="qa_contact">QA Contact</option>
+                        <option value="reported">Reported by Me</option>
+                        <option value="all_mine">All My Issues</option>
+                    </select>
+                    <select id="statusFilter" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">All Statuses</option>
+                        <option value="Open">Open</option>
+                        <option value="Closed">Closed</option>
+                        <option value="To Do">To Do</option>
+                        <option value="NEW">NEW</option>
+                        <option value="POST">POST</option>
+                        <option value="Verified">Verified</option>
+                    </select>
+                </div>
+            </div>
+            <div id="issuesList" class="space-y-4">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Utility function for API calls
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                const response = await fetch(`/api/jira${endpoint}`, options);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'API call failed');
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.className = `mb-8 p-4 rounded-lg shadow ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+            statusDiv.textContent = message;
+            statusDiv.classList.remove('hidden');
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString();
+        }
+
+        // Load and display issues
+        async function loadIssues() {
+            try {
+                const issueType = document.getElementById('issueType').value;
+                const statusFilter = document.getElementById('statusFilter').value;
+                const issues = await apiCall(`/issues/my/${issueType}?status=${statusFilter}`);
+                const issuesList = document.getElementById('issuesList');
+                issuesList.innerHTML = '';
+
+                issues.forEach(issue => {
+                    const issueCard = document.createElement('div');
+                    issueCard.className = 'border rounded-lg p-4 hover:bg-gray-50';
+                    issueCard.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <a href="${issue.url}" target="_blank" class="text-lg font-semibold text-blue-600 hover:text-blue-800">
+                                    ${issue.key}
+                                </a>
+                                <p class="text-gray-800 mt-1">${issue.summary}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-sm ${getStatusColor(issue.status)}">
+                                ${issue.status}
+                            </span>
+                        </div>
+                        <div class="mt-4 text-sm text-gray-600 grid grid-cols-2 gap-4">
+                            <div>
+                                <p><span class="font-medium">Assignee:</span> ${issue.assignee}</p>
+                                <p><span class="font-medium">Reporter:</span> ${issue.reporter}</p>
+                            </div>
+                            <div>
+                                <p><span class="font-medium">Created:</span> ${formatDate(issue.created)}</p>
+                                <p><span class="font-medium">Updated:</span> ${formatDate(issue.updated)}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex space-x-2">
+                            <button onclick="addComment('${issue.key}')" class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200">
+                                Add Comment
+                            </button>
+                            <button onclick="changeStatus('${issue.key}')" class="text-sm bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200">
+                                Change Status
+                            </button>
+                        </div>
+                    `;
+                    issuesList.appendChild(issueCard);
+                });
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        }
+
+        // Get status color
+        function getStatusColor(status) {
+            const statusLower = status.toLowerCase();
+            if (statusLower.includes('done') || statusLower.includes('closed')) {
+                return 'bg-green-100 text-green-800';
+            } else if (statusLower.includes('progress') || statusLower.includes('review')) {
+                return 'bg-blue-100 text-blue-800';
+            } else if (statusLower.includes('block') || statusLower.includes('fail')) {
+                return 'bg-red-100 text-red-800';
+            }
+            return 'bg-gray-100 text-gray-800';
+        }
+
+        // Add comment to issue
+        async function addComment(issueKey) {
+            const comment = prompt('Enter your comment:');
+            if (comment) {
+                try {
+                    await apiCall(`/issues/${issueKey}/comment`, 'POST', {
+                        issue_key: issueKey,
+                        comment: comment
+                    });
+                    showNotification('Comment added successfully');
+                } catch (error) {
+                    showNotification(error.message, 'error');
+                }
+            }
+        }
+
+        // Change issue status
+        async function changeStatus(issueKey) {
+            try {
+                const transitions = await apiCall(`/issues/${issueKey}/transitions`);
+                if (transitions.length === 0) {
+                    showNotification('No status transitions available', 'error');
+                    return;
+                }
+
+                const transitionId = prompt(
+                    'Available transitions:\n' +
+                    transitions.map(t => `${t.id}: ${t.name}`).join('\n') +
+                    '\n\nEnter transition ID:'
+                );
+
+                if (transitionId) {
+                    const comment = prompt('Enter a comment (optional):');
+                    await apiCall(`/issues/${issueKey}/transition`, 'POST', {
+                        issue_key: issueKey,
+                        transition_id: transitionId,
+                        comment: comment
+                    });
+                    showNotification('Status updated successfully');
+                    loadIssues();
+                }
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Test connection button
+            document.getElementById('testConnection').addEventListener('click', async () => {
+                try {
+                    const details = await apiCall('/connection-details');
+                    showNotification(`Connected as ${details.display_name || 'Unknown User'}`);
+                } catch (error) {
+                    showNotification(error.message, 'error');
+                }
+            });
+
+            // Refresh issues button
+            document.getElementById('refreshIssues').addEventListener('click', loadIssues);
+
+            // Issue type selector
+            document.getElementById('issueType').addEventListener('change', loadIssues);
+
+            // Status filter selector
+            document.getElementById('statusFilter').addEventListener('change', loadIssues);
+
+            // Credentials form
+            document.getElementById('credentialsForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const credentials = Object.fromEntries(formData.entries());
+                
+                try {
+                    await apiCall('/credentials', 'POST', credentials);
+                    showNotification('Credentials saved successfully');
+                    loadIssues();
+                } catch (error) {
+                    showNotification(error.message, 'error');
+                }
+            });
+
+            // Initial load
+            loadIssues();
+        });
+    </script>
+</body>
+</html>

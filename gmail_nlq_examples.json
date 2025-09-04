@@ -1,0 +1,44 @@
+{
+  "unread_emails": [
+    "Do I have any new unread emails?",
+    "Show me unread emails",
+    "Any new messages?",
+    "Check for unread emails"
+  ],
+  "important_emails": [
+    "Show me all emails marked as important",
+    "Find important emails",
+    "Flagged emails",
+    "Priority emails"
+  ],
+  "sender_search": [
+    "Emails from John",
+    "Find emails from Sarah",
+    "Messages from HR",
+    "Show emails from manager"
+  ],
+  "date_search": [
+    "Emails from today",
+    "This week's emails",
+    "Recent emails",
+    "Yesterday's emails"
+  ],
+  "attachment_search": [
+    "Emails with attachments",
+    "Find emails with PDF",
+    "Show emails with files",
+    "Emails with documents"
+  ],
+  "pending_emails": [
+    "Pending emails",
+    "Emails need attention",
+    "Emails to reply",
+    "Approval emails"
+  ],
+  "spam_emails": [
+    "Spam emails",
+    "Suspicious emails",
+    "Junk emails",
+    "Promotional emails"
+  ]
+}

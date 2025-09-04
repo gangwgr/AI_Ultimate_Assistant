@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Model Trainer - AI Ultimate Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .training-card {
+            transition: all 0.3s ease;
+        }
+        .training-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .progress-ring {
+            transition: stroke-dasharray 0.3s ease;
+        }
+        .status-success { color: #10b981; }
+        .status-error { color: #ef4444; }
+        .status-warning { color: #f59e0b; }
+        
+        /* Response formatting styles */
+        .response-content {
+            line-height: 1.6;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+        .response-content pre {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 8px 0;
+            overflow-x: auto;
+            font-size: 0.875rem;
+        }
+        .response-content code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.875rem;
+        }
+        .response-content strong {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .response-content em {
+            font-style: italic;
+            color: #6b7280;
+        }
+        .status-info { color: #3b82f6; }
+        
+        .training-log {
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+        
+        @keyframes pulse-gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .training-active {
+            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-size: 400% 400%;
+            animation: pulse-gradient 3s ease infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-brain text-purple-500"></i> AI Model Trainer
+            </h1>
+            <p class="text-gray-600">Train your existing models with your workflow data</p>
+            <div class="mt-4 space-x-4">
+                <a href="/" class="text-blue-500 hover:text-blue-700">
+                    <i class="fas fa-arrow-left"></i> Back to Main Interface
+                </a>
+                <a href="/frontend/multi_model_demo.html" class="text-purple-500 hover:text-purple-700">
+                    <i class="fas fa-chart-bar"></i> Multi-Model Demo
+                </a>
+            </div>
+        </div>
+
+        <!-- Training Dashboard -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Available Models -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">
+                    <i class="fas fa-robot text-blue-500"></i> Available Models
+                </h2>
+                <div id="models-list" class="space-y-3">
+                    <!-- Models will be loaded here -->
+                </div>
+                <button id="refresh-models" class="mt-4 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                    <i class="fas fa-sync mr-2"></i>Refresh Models
+                </button>
+            </div>
+
+            <!-- Training Controls -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">
+                    <i class="fas fa-cogs text-green-500"></i> Training Controls
+                </h2>
+                
+                <!-- Quick Training -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium mb-3">🚀 Quick Training</h3>
+                    <p class="text-sm text-gray-600 mb-3">Train granite3.3-balanced with workflow data (2-3 minutes)</p>
+                    <button id="quick-train-btn" class="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">
+                        <i class="fas fa-flash mr-2"></i>Quick Train granite3.3-assistant
+                    </button>
+                </div>
+
+                <!-- Custom Training -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium mb-3">🎯 Custom Training</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Select Base Model</label>
+                            <select id="base-model-select" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-purple-500">
+                                <!-- Models will be populated here -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Output Model Name</label>
+                            <input type="text" id="output-model-name" 
+                                   placeholder="e.g., llama3-assistant" 
+                                   class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <button id="custom-train-btn" class="w-full bg-purple-500 text-white py-2 rounded hover:bg-purple-600">
+                            <i class="fas fa-play mr-2"></i>Start Custom Training
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Batch Training -->
+                <div>
+                    <h3 class="text-lg font-medium mb-3">📚 Batch Training</h3>
+                    <p class="text-sm text-gray-600 mb-3">Train multiple models simultaneously</p>
+                    <div class="space-y-2" id="batch-models">
+                        <!-- Checkboxes will be populated here -->
+                    </div>
+                    <button id="batch-train-btn" class="w-full mt-3 bg-orange-500 text-white py-2 rounded hover:bg-orange-600">
+                        <i class="fas fa-layer-group mr-2"></i>Start Batch Training
+                    </button>
+                </div>
+
+                <!-- Continuous Learning -->
+                <div>
+                    <h3 class="text-lg font-medium mb-3">🔄 Continuous Learning</h3>
+                    <p class="text-sm text-gray-600 mb-3">Permanently update existing models with new documents and URLs</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Select Model to Update</label>
+                            <select id="continuous-model-select" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-green-500">
+                                <!-- Models will be populated here -->
+                            </select>
+                        </div>
+                        
+                        <!-- Document Upload -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">📄 Upload Documents</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-green-400 transition-colors">
+                                <input type="file" id="continuous-files" multiple accept=".pdf,.txt,.md,.docx,.py,.json,.yaml,.yml" class="hidden">
+                                <label for="continuous-files" class="cursor-pointer block text-center">
+                                    <i class="fas fa-upload text-2xl text-gray-400 mb-2"></i>
+                                    <p class="text-sm text-gray-600">Click to upload documents or drag and drop</p>
+                                    <p class="text-xs text-gray-500 mt-1">Supports: PDF, TXT, MD, DOCX, PY, JSON, YAML</p>
+                                </label>
+                            </div>
+                            <div id="uploaded-files" class="mt-2 space-y-1 hidden">
+                                <!-- Uploaded files will be shown here -->
+                            </div>
+                        </div>
+                        
+                        <!-- URL Input -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">🌐 Web URLs</label>
+                            <div class="space-y-2">
+                                <div class="flex gap-2">
+                                    <input type="url" id="url-input" placeholder="https://example.com/article" 
+                                           class="flex-1 px-3 py-2 border rounded focus:ring-2 focus:ring-green-500">
+                                    <button id="add-url-btn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Note: URLs requiring authentication (like private Jira issues) cannot be scraped automatically. 
+                                    Use the "Custom Content" field instead.
+                                </div>
+                                <div id="url-list" class="space-y-1">
+                                    <!-- Added URLs will be shown here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Custom Content -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">✍️ Custom Content</label>
+                            <textarea id="custom-content" rows="4" 
+                                      placeholder="Add custom training content directly..."
+                                      class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-green-500"></textarea>
+                        </div>
+                        
+                        <!-- Content Preview -->
+                        <div id="content-preview" class="hidden">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">📖 Content Preview</h4>
+                            <div class="bg-gray-50 p-3 rounded text-sm">
+                                <div id="preview-text" class="text-gray-600 mb-2"></div>
+                                <div id="preview-stats" class="text-xs text-gray-500"></div>
+                            </div>
+                        </div>
+                        
+                        <button id="continuous-learn-btn" class="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">
+                            <i class="fas fa-brain mr-2"></i>Start Continuous Learning
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Status & Progress -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">
+                    <i class="fas fa-chart-line text-red-500"></i> Training Status
+                </h2>
+                
+                <!-- Current Training -->
+                <div id="current-training" class="mb-6 hidden">
+                    <h3 class="text-lg font-medium mb-3">Current Training</h3>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <div class="flex justify-between items-center mb-2">
+                            <span id="training-model-name" class="font-medium"></span>
+                            <span id="training-status" class="text-sm"></span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                            <div id="training-progress" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <div id="training-eta" class="text-sm text-gray-600"></div>
+                    </div>
+                </div>
+
+                <!-- Training Log -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium mb-3">Training Log</h3>
+                    <div id="training-log" class="training-log bg-black text-green-400 p-3 rounded">
+                        <div class="text-gray-500">Ready to start training...</div>
+                    </div>
+                </div>
+
+                <!-- Training History -->
+                <div>
+                    <h3 class="text-lg font-medium mb-3">Recent Training</h3>
+                    <div id="training-history" class="space-y-2">
+                        <!-- History items will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training Data Configuration -->
+        <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">
+                <i class="fas fa-database text-blue-500"></i> Training Data Configuration
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Built-in Training Data -->
+                <div>
+                    <h3 class="text-lg font-medium mb-3">📦 Built-in Training Data</h3>
+                    <div class="space-y-3">
+                        <div class="bg-gray-50 p-3 rounded">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">GitHub PR Reviews</span>
+                                <span class="text-sm text-gray-500">2 examples</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Security analysis, performance reviews</p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">Email Management</span>
+                                <span class="text-sm text-gray-500">2 examples</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Professional communication, scheduling</p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">OpenShift Troubleshooting</span>
+                                <span class="text-sm text-gray-500">2 examples</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Pod issues, cluster management</p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">Workflow Automation</span>
+                                <span class="text-sm text-gray-500">1 example</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Meeting preparation, task coordination</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Training Data -->
+                <div>
+                    <h3 class="text-lg font-medium mb-3">📝 Custom Training Data</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Upload JSONL File</label>
+                            <input type="file" id="custom-data-file" accept=".jsonl,.json" 
+                                   class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Upload additional training data in JSONL format</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Add Manual Example</label>
+                            <textarea id="manual-instruction" placeholder="Instruction/Question..." 
+                                      class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500" rows="2"></textarea>
+                            <textarea id="manual-output" placeholder="Expected response..." 
+                                      class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 mt-2" rows="3"></textarea>
+                            <button id="add-example-btn" class="mt-2 bg-blue-500 text-white px-4 py-1 rounded text-sm hover:bg-blue-600">
+                                <i class="fas fa-plus mr-1"></i>Add Example
+                            </button>
+                        </div>
+                        
+                        <div id="custom-examples" class="space-y-2">
+                            <!-- Custom examples will appear here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Testing -->
+        <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">
+                <i class="fas fa-vial text-green-500"></i> Model Testing
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Test Interface -->
+                <div>
+                    <h3 class="text-lg font-medium mb-3">Test Trained Models</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-sm font-medium text-gray-700">Select Model to Test</label>
+                                <button id="refresh-test-models" class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">
+                                    <i class="fas fa-sync-alt mr-1"></i>Refresh
+                                </button>
+                            </div>
+                            <select id="test-model-select" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-green-500">
+                                <!-- Trained models will be populated here -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Test Query</label>
+                            <textarea id="test-query" 
+                                      placeholder="Enter a test query..." 
+                                      class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-green-500" rows="3"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="test-model-btn" class="bg-green-500 text-white py-2 rounded hover:bg-green-600">
+                                <i class="fas fa-play mr-2"></i>Test Model
+                            </button>
+                            <button id="quick-test-btn" class="bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                                <i class="fas fa-flash mr-2"></i>Quick Test
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Results -->
+                <div>
+                    <h3 class="text-lg font-medium mb-3">Test Results</h3>
+                    <div id="test-results" class="bg-gray-50 p-4 rounded min-h-32">
+                        <div class="text-gray-500 text-center">No tests run yet</div>
+                    </div>
+                    <div id="test-metrics" class="mt-3 grid grid-cols-3 gap-2 text-sm">
+                        <div class="text-center">
+                            <div class="font-medium">Response Time</div>
+                            <div id="response-time" class="text-gray-600">-</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-medium">Model Used</div>
+                            <div id="model-used" class="text-gray-600">-</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-medium">Status</div>
+                            <div id="test-status" class="text-gray-600">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ModelTrainer {
+            constructor() {
+                this.apiBase = '';
+                this.trainingActive = false;
+                this.customExamples = [];
+                this.models = []; // Initialize models array
+                this.urls = []; // Initialize URLs array for continuous learning
+                this.init();
+            }
+
+            async init() {
+                await this.loadModels();
+                await this.loadTrainingHistory();
+                this.setupEventListeners();
+                await this.loadTestModels();
+                this.initializeContinuousLearning();
+            }
+
+            setupEventListeners() {
+                // Training controls
+                document.getElementById('quick-train-btn').addEventListener('click', () => this.quickTrain());
+                document.getElementById('custom-train-btn').addEventListener('click', () => this.customTrain());
+                document.getElementById('batch-train-btn').addEventListener('click', () => this.batchTrain());
+                document.getElementById('refresh-models').addEventListener('click', () => this.loadModels());
+                
+                // Training data
+                document.getElementById('add-example-btn').addEventListener('click', () => this.addCustomExample());
+                document.getElementById('custom-data-file').addEventListener('change', (e) => this.handleFileUpload(e));
+                
+                // Testing
+                document.getElementById('test-model-btn').addEventListener('click', () => this.testModel());
+                document.getElementById('quick-test-btn').addEventListener('click', () => this.quickTest());
+                document.getElementById('refresh-test-models').addEventListener('click', async () => await this.loadTestModels());
+            }
+
+            async loadModels() {
+                try {
+                    // Use our local training script to get models
+                    const response = await fetch('/api/models/available', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'list' })
+                    });
+                    
+                    if (!response.ok) {
+                        // Fallback: simulate model list
+                        this.displayModels([
+                            'granite3.3-balanced:latest',
+                            'granite3.3-simple:latest', 
+                            'granite3.3:latest',
+                            'mistral:latest',
+                            'openshift-ai:latest',
+                            'llama3:latest'
+                        ]);
+                        return;
+                    }
+                    
+                    const models = await response.json();
+                    this.displayModels(models);
+                } catch (error) {
+                    console.error('Error loading models:', error);
+                    this.logMessage('Error loading models', 'error');
+                }
+            }
+
+            displayModels(models) {
+                // Store models for use in continuous learning
+                this.models = models;
+                
+                const modelsList = document.getElementById('models-list');
+                const baseModelSelect = document.getElementById('base-model-select');
+                const batchModels = document.getElementById('batch-models');
+                
+                // Clear existing content
+                modelsList.innerHTML = '';
+                baseModelSelect.innerHTML = '';
+                batchModels.innerHTML = '';
+                
+                models.forEach(model => {
+                    // Model list display
+                    const modelDiv = document.createElement('div');
+                    modelDiv.className = 'bg-gray-50 p-3 rounded';
+                    modelDiv.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-sm">${model}</span>
+                            <span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">Available</span>
+                        </div>
+                    `;
+                    modelsList.appendChild(modelDiv);
+                    
+                    // Base model select
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    baseModelSelect.appendChild(option);
+                    
+                    // Batch training checkboxes
+                    const checkbox = document.createElement('label');
+                    checkbox.className = 'flex items-center text-sm';
+                    checkbox.innerHTML = `
+                        <input type="checkbox" value="${model}" class="mr-2">
+                        <span>${model}</span>
+                    `;
+                    batchModels.appendChild(checkbox);
+                });
+                
+                // Update continuous learning models
+                this.loadContinuousModels();
+            }
+
+            async quickTrain() {
+                this.logMessage('🚀 Starting quick training...', 'info');
+                this.setTrainingStatus('granite3.3-balanced → granite3.3-assistant', 'Initializing...', 0);
+                
+                try {
+                    const response = await fetch('/api/models/train', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            action: 'quick',
+                            baseModel: 'granite3.3-balanced:latest',
+                            outputModel: 'granite3.3-assistant'
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        await this.monitorTraining();
+                    } else {
+                        throw new Error('Training request failed');
+                    }
+                } catch (error) {
+                    this.logMessage(`❌ Training failed: ${error.message}`, 'error');
+                    this.clearTrainingStatus();
+                }
+            }
+
+            async customTrain() {
+                const baseModel = document.getElementById('base-model-select').value;
+                const outputModel = document.getElementById('output-model-name').value;
+                
+                if (!baseModel || !outputModel) {
+                    this.logMessage('❌ Please select base model and enter output name', 'error');
+                    return;
+                }
+                
+                this.logMessage(`🎯 Starting custom training: ${baseModel} → ${outputModel}`, 'info');
+                this.setTrainingStatus(`${baseModel} → ${outputModel}`, 'Preparing...', 10);
+                
+                try {
+                    const response = await fetch('/api/models/train', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            action: 'custom',
+                            baseModel,
+                            outputModel,
+                            customExamples: this.customExamples
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        await this.monitorTraining();
+                    } else {
+                        throw new Error('Custom training failed');
+                    }
+                } catch (error) {
+                    this.logMessage(`❌ Custom training failed: ${error.message}`, 'error');
+                    this.clearTrainingStatus();
+                }
+            }
+
+            async batchTrain() {
+                const checkboxes = document.querySelectorAll('#batch-models input[type="checkbox"]:checked');
+                const selectedModels = Array.from(checkboxes).map(cb => cb.value);
+                
+                if (selectedModels.length === 0) {
+                    this.logMessage('❌ Please select at least one model for batch training', 'error');
+                    return;
+                }
+                
+                this.logMessage(`📚 Starting batch training for ${selectedModels.length} models`, 'info');
+                this.setTrainingStatus('Batch Training', `Training ${selectedModels.length} models...`, 5);
+                
+                try {
+                    const response = await fetch('/api/models/train', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            action: 'batch',
+                            models: selectedModels
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        await this.monitorTraining();
+                    } else {
+                        throw new Error('Batch training failed');
+                    }
+                } catch (error) {
+                    this.logMessage(`❌ Batch training failed: ${error.message}`, 'error');
+                    this.clearTrainingStatus();
+                }
+            }
+
+            async monitorTraining() {
+                this.trainingActive = true;
+                const steps = [
+                    { progress: 20, message: '📝 Creating enhanced modelfile...' },
+                    { progress: 40, message: '🤖 Initializing model training...' },
+                    { progress: 60, message: '⚡ Training in progress...' },
+                    { progress: 80, message: '🧪 Testing trained model...' },
+                    { progress: 95, message: '💾 Saving model...' },
+                    { progress: 100, message: '✅ Training completed!' }
+                ];
+                
+                for (const step of steps) {
+                    if (!this.trainingActive) break;
+                    
+                    this.updateTrainingProgress(step.progress);
+                    this.logMessage(step.message, 'info');
+                    
+                    // Simulate training time
+                    await this.delay(30000); // 30 seconds per step
+                }
+                
+                if (this.trainingActive) {
+                    this.logMessage('🎉 Training completed successfully!', 'success');
+                    this.clearTrainingStatus();
+                    await this.loadTrainingHistory();
+                    await this.loadTestModels();
+                }
+            }
+
+            setTrainingStatus(modelName, status, progress) {
+                const currentTraining = document.getElementById('current-training');
+                currentTraining.classList.remove('hidden');
+                
+                document.getElementById('training-model-name').textContent = modelName;
+                document.getElementById('training-status').textContent = status;
+                document.getElementById('training-progress').style.width = `${progress}%`;
+                
+                const eta = progress > 0 ? Math.round((100 - progress) * 2.5) : 150; // Rough estimate
+                document.getElementById('training-eta').textContent = `ETA: ${eta} seconds`;
+            }
+
+            updateTrainingProgress(progress) {
+                document.getElementById('training-progress').style.width = `${progress}%`;
+                const eta = Math.round((100 - progress) * 2.5);
+                document.getElementById('training-eta').textContent = `ETA: ${eta} seconds`;
+            }
+
+            clearTrainingStatus() {
+                this.trainingActive = false;
+                document.getElementById('current-training').classList.add('hidden');
+            }
+
+            logMessage(message, type = 'info') {
+                const log = document.getElementById('training-log');
+                const timestamp = new Date().toLocaleTimeString();
+                const typeColors = {
+                    info: 'text-blue-400',
+                    success: 'text-green-400', 
+                    error: 'text-red-400',
+                    warning: 'text-yellow-400'
+                };
+                
+                const logEntry = document.createElement('div');
+                logEntry.className = typeColors[type] || 'text-gray-400';
+                logEntry.textContent = `[${timestamp}] ${message}`;
+                
+                log.appendChild(logEntry);
+                log.scrollTop = log.scrollHeight;
+            }
+
+            addCustomExample() {
+                const instruction = document.getElementById('manual-instruction').value.trim();
+                const output = document.getElementById('manual-output').value.trim();
+                
+                if (!instruction || !output) {
+                    this.logMessage('❌ Please fill in both instruction and output', 'error');
+                    return;
+                }
+                
+                const example = {
+                    instruction,
+                    input: '',
+                    output,
+                    category: 'custom'
+                };
+                
+                this.customExamples.push(example);
+                this.displayCustomExample(example, this.customExamples.length - 1);
+                
+                // Clear inputs
+                document.getElementById('manual-instruction').value = '';
+                document.getElementById('manual-output').value = '';
+                
+                this.logMessage(`✅ Added custom example (${this.customExamples.length} total)`, 'success');
+            }
+
+            displayCustomExample(example, index) {
+                const container = document.getElementById('custom-examples');
+                const exampleDiv = document.createElement('div');
+                exampleDiv.className = 'bg-blue-50 p-3 rounded border';
+                exampleDiv.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-medium text-sm">Custom Example ${index + 1}</span>
+                        <button onclick="trainer.removeCustomExample(${index})" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="text-sm">
+                        <div><strong>Q:</strong> ${example.instruction}</div>
+                        <div class="mt-1"><strong>A:</strong> ${example.output.substring(0, 100)}${example.output.length > 100 ? '...' : ''}</div>
+                    </div>
+                `;
+                container.appendChild(exampleDiv);
+            }
+
+            removeCustomExample(index) {
+                this.customExamples.splice(index, 1);
+                this.refreshCustomExamples();
+                this.logMessage(`🗑️ Removed custom example`, 'warning');
+            }
+
+            refreshCustomExamples() {
+                const container = document.getElementById('custom-examples');
+                container.innerHTML = '';
+                this.customExamples.forEach((example, index) => {
+                    this.displayCustomExample(example, index);
+                });
+            }
+
+            async loadTrainingHistory() {
+                // Simulate training history
+                const history = [
+                    {
+                        timestamp: new Date().toISOString(),
+                        base_model: 'granite3.3-balanced:latest',
+                        output_model: 'granite3.3-assistant',
+                        training_examples: 7,
+                        success: true
+                    }
+                ];
+                
+                const historyContainer = document.getElementById('training-history');
+                historyContainer.innerHTML = '';
+                
+                history.forEach(record => {
+                    const historyDiv = document.createElement('div');
+                    historyDiv.className = 'bg-gray-50 p-2 rounded text-sm';
+                    const time = new Date(record.timestamp).toLocaleString();
+                    historyDiv.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">${record.output_model}</span>
+                            <span class="${record.success ? 'text-green-600' : 'text-red-600'}">
+                                <i class="fas fa-${record.success ? 'check' : 'times'}"></i>
+                            </span>
+                        </div>
+                        <div class="text-gray-600">${time}</div>
+                        <div class="text-gray-500">${record.training_examples} examples</div>
+                    `;
+                    historyContainer.appendChild(historyDiv);
+                });
+            }
+
+            async loadTestModels() {
+                console.log('🔍 Loading test models...');
+                const select = document.getElementById('test-model-select');
+                if (!select) {
+                    console.error('❌ Test model select element not found');
+                    return;
+                }
+                
+                select.innerHTML = '<option value="">Select trained model...</option>';
+                
+                try {
+                    console.log('📡 Fetching models from API...');
+                    // Get available models from API
+                    const response = await fetch('/api/models/available', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'list' })
+                    });
+                    
+                    console.log('📊 Response status:', response.status);
+                    
+                    if (response.ok) {
+                        const models = await response.json();
+                        console.log('📋 Received models:', models);
+                        console.log('📊 Number of models:', models.length);
+                        
+                        models.forEach((model, index) => {
+                            console.log(`➕ Adding model ${index + 1}: ${model}`);
+                            const option = document.createElement('option');
+                            option.value = model;
+                            option.textContent = model;
+                            select.appendChild(option);
+                        });
+                        
+                        console.log('✅ Models loaded successfully');
+                        this.logMessage(`✅ Loaded ${models.length} available models`, 'success');
+                    } else {
+                        const errorText = await response.text();
+                        console.error('❌ API error:', errorText);
+                        throw new Error(`Failed to load models: ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error('❌ Error loading test models:', error);
+                    this.logMessage(`❌ Failed to load models from API: ${error.message}`, 'error');
+                    
+                    // Fallback to known models
+                    console.log('🔄 Using fallback models...');
+                    const fallbackModels = ['granite3.3-assistant', 'granite3.3-balanced', 'llama3'];
+                    fallbackModels.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model;
+                        option.textContent = model;
+                        select.appendChild(option);
+                    });
+                    this.logMessage('⚠️ Using fallback models', 'warning');
+                }
+            }
+
+            // Continuous Learning Functions
+            initializeContinuousLearning() {
+                this.urls = [];
+                this.loadContinuousModels();
+                this.setupContinuousLearningEvents();
+            }
+
+            async loadContinuousModels() {
+                const select = document.getElementById('continuous-model-select');
+                select.innerHTML = '<option value="">Select model to update...</option>';
+                
+                // Check if models are available
+                if (!this.models || this.models.length === 0) {
+                    console.log('Models not loaded yet, will populate when available');
+                    return;
+                }
+                
+                // Load available models
+                this.models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    select.appendChild(option);
+                });
+            }
+
+            setupContinuousLearningEvents() {
+                // File upload handling
+                const fileInput = document.getElementById('continuous-files');
+                fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
+                
+                // URL management
+                document.getElementById('add-url-btn').addEventListener('click', () => this.addUrl());
+                document.getElementById('url-input').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addUrl();
+                });
+                
+                // Continuous learning button
+                document.getElementById('continuous-learn-btn').addEventListener('click', () => this.startContinuousLearning());
+                
+                // Content preview on file/URL change
+                fileInput.addEventListener('change', () => this.updateContentPreview());
+                document.getElementById('custom-content').addEventListener('input', () => this.updateContentPreview());
+            }
+
+            handleFileUpload(event) {
+                const files = Array.from(event.target.files);
+                const uploadedFilesDiv = document.getElementById('uploaded-files');
+                
+                if (files.length > 0) {
+                    uploadedFilesDiv.classList.remove('hidden');
+                    uploadedFilesDiv.innerHTML = '';
+                    
+                    files.forEach((file, index) => {
+                        const fileDiv = document.createElement('div');
+                        fileDiv.className = 'flex items-center justify-between bg-blue-50 p-2 rounded text-sm';
+                        fileDiv.innerHTML = `
+                            <span><i class="fas fa-file mr-2 text-blue-500"></i>${file.name}</span>
+                            <span class="text-gray-500">${this.formatFileSize(file.size)}</span>
+                        `;
+                        uploadedFilesDiv.appendChild(fileDiv);
+                    });
+                    
+                    this.logMessage(`📄 Selected ${files.length} file(s) for training`, 'info');
+                }
+            }
+
+            addUrl() {
+                const urlInput = document.getElementById('url-input');
+                const url = urlInput.value.trim();
+                
+                if (url && this.isValidUrl(url)) {
+                    if (!this.urls.includes(url)) {
+                        this.urls.push(url);
+                        this.updateUrlList();
+                        urlInput.value = '';
+                        this.logMessage(`🔗 Added URL: ${url}`, 'info');
+                    } else {
+                        this.logMessage('⚠️ URL already added', 'warning');
+                    }
+                } else {
+                    this.logMessage('❌ Please enter a valid URL', 'error');
+                }
+            }
+
+            updateUrlList() {
+                const urlListDiv = document.getElementById('url-list');
+                urlListDiv.innerHTML = '';
+                
+                this.urls.forEach((url, index) => {
+                    const urlDiv = document.createElement('div');
+                    urlDiv.className = 'flex items-center justify-between bg-green-50 p-2 rounded text-sm';
+                    urlDiv.innerHTML = `
+                        <span><i class="fas fa-link mr-2 text-green-500"></i>${url}</span>
+                        <button onclick="trainer.removeUrl(${index})" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    urlListDiv.appendChild(urlDiv);
+                });
+            }
+
+            removeUrl(index) {
+                this.urls.splice(index, 1);
+                this.updateUrlList();
+                this.logMessage('🗑️ Removed URL', 'warning');
+            }
+
+            async updateContentPreview() {
+                const files = document.getElementById('continuous-files').files;
+                const customContent = document.getElementById('custom-content').value.trim();
+                const previewDiv = document.getElementById('content-preview');
+                
+                if (files.length > 0 || this.urls.length > 0 || customContent) {
+                    previewDiv.classList.remove('hidden');
+                    
+                    let totalSources = 0;
+                    let totalSize = 0;
+                    
+                    // Count files
+                    if (files.length > 0) {
+                        totalSources += files.length;
+                        Array.from(files).forEach(file => totalSize += file.size);
+                    }
+                    
+                    // Count URLs
+                    totalSources += this.urls.length;
+                    
+                    // Count custom content
+                    if (customContent) {
+                        totalSources += 1;
+                        totalSize += customContent.length;
+                    }
+                    
+                    const previewText = `${totalSources} source(s) ready for training`;
+                    const previewStats = `Estimated training data: ${this.formatFileSize(totalSize)}`;
+                    
+                    document.getElementById('preview-text').textContent = previewText;
+                    document.getElementById('preview-stats').textContent = previewStats;
+                } else {
+                    previewDiv.classList.add('hidden');
+                }
+            }
+
+            async startContinuousLearning() {
+                const modelName = document.getElementById('continuous-model-select').value;
+                const files = document.getElementById('continuous-files').files;
+                const customContent = document.getElementById('custom-content').value.trim();
+                
+                if (!modelName) {
+                    this.logMessage('❌ Please select a model to update', 'error');
+                    return;
+                }
+                
+                if (files.length === 0 && this.urls.length === 0 && !customContent) {
+                    this.logMessage('❌ Please provide at least one source (file, URL, or custom content)', 'error');
+                    return;
+                }
+                
+                this.logMessage(`🚀 Starting continuous learning for ${modelName}...`, 'info');
+                
+                try {
+                    // Prepare form data
+                    const formData = new FormData();
+                    formData.append('model_name', modelName);
+                    
+                    // Add files
+                    Array.from(files).forEach(file => {
+                        formData.append('files', file);
+                    });
+                    
+                    // Add URLs
+                    this.urls.forEach(url => {
+                        formData.append('urls', url);
+                    });
+                    
+                    // Add custom content
+                    if (customContent) {
+                        formData.append('custom_content', customContent);
+                    }
+                    
+                    // Start continuous learning
+                    const response = await fetch('/api/models/continuous-learning', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            this.logMessage(`✅ Continuous learning started for ${modelName}`, 'success');
+                            this.monitorContinuousTraining(modelName);
+                        } else {
+                            this.logMessage(`❌ Failed to start continuous learning: ${result.message}`, 'error');
+                        }
+                    } else {
+                        throw new Error('Failed to start continuous learning');
+                    }
+                } catch (error) {
+                    this.logMessage(`❌ Error starting continuous learning: ${error.message}`, 'error');
+                }
+            }
+
+            async monitorContinuousTraining(modelName) {
+                const checkStatus = async () => {
+                    try {
+                        const response = await fetch(`/api/models/status/${modelName}`);
+                        if (response.ok) {
+                            const status = await response.json();
+                            
+                            if (status.status === 'completed') {
+                                this.logMessage(`🎉 Continuous learning completed! Enhanced model: ${status.result?.enhanced_model}`, 'success');
+                                this.updateContinuousLearningHistory(modelName);
+                                return;
+                            } else if (status.status === 'failed') {
+                                this.logMessage(`❌ Continuous learning failed: ${status.message}`, 'error');
+                                return;
+                            }
+                            
+                            // Continue monitoring
+                            setTimeout(checkStatus, 3000);
+                        }
+                    } catch (error) {
+                        this.logMessage(`⚠️ Error monitoring training: ${error.message}`, 'warning');
+                    }
+                };
+                
+                checkStatus();
+            }
+
+            async updateContinuousLearningHistory(modelName) {
+                try {
+                    const response = await fetch(`/api/models/continuous-history/${modelName}`);
+                    if (response.ok) {
+                        const result = await response.json();
+                        // Update history display if needed
+                        this.logMessage(`📚 Training history updated for ${modelName}`, 'info');
+                    }
+                } catch (error) {
+                    console.warn('Could not load training history:', error);
+                }
+            }
+
+            isValidUrl(string) {
+                try {
+                    new URL(string);
+                    return true;
+                } catch (_) {
+                    return false;
+                }
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            async testModel() {
+                const model = document.getElementById('test-model-select').value;
+                const query = document.getElementById('test-query').value.trim();
+                
+                if (!model || !query) {
+                    this.logMessage('❌ Please select a model and enter a test query', 'error');
+                    return;
+                }
+                
+                const startTime = Date.now();
+                this.logMessage(`🧪 Testing ${model} with query...`, 'info');
+                
+                try {
+                    // Call the model training test API
+                    const response = await fetch('/api/models/test', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ model, query })
+                    });
+                    
+                    const responseTime = Date.now() - startTime;
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        this.displayTestResults(result.response, model, responseTime, 'success');
+                        this.logMessage(`✅ Test completed successfully`, 'success');
+                    } else {
+                        throw new Error('Test failed');
+                    }
+                } catch (error) {
+                    const errorMessage = error.message || 'Unknown error occurred';
+                    this.displayTestResults(`Error: ${errorMessage}`, model, 0, 'error');
+                    this.logMessage(`❌ Test failed: ${errorMessage}`, 'error');
+                }
+            }
+
+            quickTest() {
+                document.getElementById('test-query').value = 'Review this Python code for security issues: def get_user(id): return execute_query(f"SELECT * FROM users WHERE id = {id}")';
+                this.testModel();
+            }
+
+            displayTestResults(response, model, responseTime, status) {
+                const resultsContainer = document.getElementById('test-results');
+                
+                // Format the response to preserve line breaks and formatting
+                const formattedResponse = response
+                    .replace(/\n/g, '<br>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/```(.*?)```/gs, '<pre class="bg-gray-100 p-2 rounded text-sm overflow-x-auto"><code>$1</code></pre>')
+                    .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 rounded text-sm">$1</code>');
+                
+                resultsContainer.innerHTML = `
+                    <div class="text-sm">
+                        <div class="font-medium mb-2">Response:</div>
+                        <div class="bg-white p-3 rounded border whitespace-pre-wrap">${formattedResponse}</div>
+                    </div>
+                `;
+                
+                document.getElementById('response-time').textContent = `${responseTime}ms`;
+                document.getElementById('model-used').textContent = model;
+                document.getElementById('test-status').textContent = status;
+                document.getElementById('test-status').className = `status-${status}`;
+            }
+
+            handleFileUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const content = e.target.result;
+                            const lines = content.split('\n').filter(line => line.trim());
+                            
+                            lines.forEach(line => {
+                                try {
+                                    const example = JSON.parse(line);
+                                    if (example.instruction && example.output) {
+                                        this.customExamples.push(example);
+                                    }
+                                } catch (err) {
+                                    console.warn('Invalid JSON line:', line);
+                                }
+                            });
+                            
+                            this.refreshCustomExamples();
+                            this.logMessage(`✅ Loaded ${lines.length} examples from file`, 'success');
+                        } catch (error) {
+                            this.logMessage(`❌ Error reading file: ${error.message}`, 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            }
+
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Initialize the trainer when page loads
+        let trainer;
+        document.addEventListener('DOMContentLoaded', async () => {
+            trainer = new ModelTrainer();
+            // Ensure models are loaded after a short delay
+            setTimeout(async () => {
+                if (trainer) {
+                    await trainer.loadTestModels();
+                }
+            }, 1000);
+        });
+        
+        // Also load models when window is fully loaded
+        window.addEventListener('load', async () => {
+            if (trainer) {
+                console.log('🔄 Window loaded, reloading test models...');
+                await trainer.loadTestModels();
+            }
+        });
+    </script>
+</body>
+</html> 

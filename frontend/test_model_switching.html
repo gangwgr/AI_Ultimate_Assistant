@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Switching Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        select, button {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .loading { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>🤖 Model Switching Test</h1>
+    
+    <div class="container">
+        <h2>Available Models</h2>
+        <div class="flex space-x-2 mb-2">
+            <select id="ai-model-setting" style="flex: 1;">
+                <option value="">Loading models...</option>
+            </select>
+            <button id="refresh-models-btn" title="Refresh available models">
+                🔄 Refresh
+            </button>
+        </div>
+        <p>Choose which AI model to use for responses</p>
+        <div class="mt-2">
+            <button id="switch-model-btn">
+                🔄 Switch Model Now
+            </button>
+            <span id="model-status" class="ml-3 text-sm text-gray-600"></span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        class ModelSwitcher {
+            constructor() {
+                this.setupEventListeners();
+                this.loadAvailableModels();
+            }
+
+            setupEventListeners() {
+                const refreshBtn = document.getElementById('refresh-models-btn');
+                const switchBtn = document.getElementById('switch-model-btn');
+                
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', () => {
+                        this.loadAvailableModels();
+                    });
+                }
+                
+                if (switchBtn) {
+                    switchBtn.addEventListener('click', () => {
+                        const selectedModel = document.getElementById('ai-model-setting').value;
+                        if (!selectedModel) {
+                            alert('Please select a model first');
+                            return;
+                        }
+                        this.switchModel(selectedModel);
+                    });
+                }
+            }
+
+            async loadAvailableModels() {
+                try {
+                    console.log('🔄 Loading available models...');
+                    const select = document.getElementById('ai-model-setting');
+                    if (!select) {
+                        console.error('❌ AI model select element not found');
+                        return;
+                    }
+                    
+                    // Show loading state
+                    select.innerHTML = '<option value="">Loading models...</option>';
+                    this.logResult('🔄 Loading available models...', 'loading');
+                    
+                    // Fetch available models from API
+                    const response = await fetch('/api/models/available', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'list' })
+                    });
+                    
+                    if (response.ok) {
+                        const models = await response.json();
+                        console.log('📋 Available models:', models);
+                        
+                        // Clear and populate dropdown
+                        select.innerHTML = '';
+                        
+                        // Add default options for external providers
+                        const externalProviders = [
+                            { value: 'gemini', text: 'Google Gemini 2.5 Flash' },
+                            { value: 'openai', text: 'OpenAI GPT-4' }
+                        ];
+                        
+                        externalProviders.forEach(provider => {
+                            const option = document.createElement('option');
+                            option.value = provider.value;
+                            option.textContent = provider.text;
+                            select.appendChild(option);
+                        });
+                        
+                        // Add separator if we have Ollama models
+                        if (models.length > 0) {
+                            const separator = document.createElement('option');
+                            separator.disabled = true;
+                            separator.textContent = '────────── Ollama Models ──────────';
+                            select.appendChild(separator);
+                        }
+                        
+                        // Add Ollama models
+                        models.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model;
+                            option.textContent = `🤖 ${model}`;
+                            select.appendChild(option);
+                        });
+                        
+                        console.log(`✅ Loaded ${models.length} Ollama models + ${externalProviders.length} external providers`);
+                        this.logResult(`✅ Loaded ${models.length} Ollama models + ${externalProviders.length} external providers`, 'success');
+                        
+                        // Set default selection to current model if available
+                        const currentModel = localStorage.getItem('aiModel') || 'granite3.3-balanced:latest';
+                        if (currentModel && select.querySelector(`option[value="${currentModel}"]`)) {
+                            select.value = currentModel;
+                        }
+                        
+                    } else {
+                        console.error('❌ Failed to fetch models:', response.status);
+                        select.innerHTML = '<option value="">Error loading models</option>';
+                        this.logResult(`❌ Failed to fetch models: ${response.status}`, 'error');
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error loading models:', error);
+                    const select = document.getElementById('ai-model-setting');
+                    if (select) {
+                        select.innerHTML = '<option value="">Error loading models</option>';
+                    }
+                    this.logResult(`❌ Error loading models: ${error.message}`, 'error');
+                }
+            }
+
+            async switchModel(selectedModel) {
+                const modelStatus = document.getElementById('model-status');
+                const switchBtn = document.getElementById('switch-model-btn');
+                
+                if (modelStatus) modelStatus.textContent = 'Switching...';
+                if (switchBtn) switchBtn.disabled = true;
+                
+                this.logResult(`🔄 Switching to model: ${selectedModel}`, 'loading');
+                
+                // Map model names to providers
+                let provider = selectedModel;
+                if (selectedModel.includes('granite') || selectedModel.includes('deepseek') || 
+                    selectedModel.includes('codellama') || selectedModel.includes('mistral') || 
+                    selectedModel.includes('openshift') || selectedModel.includes('llama')) {
+                    provider = 'ollama';
+                } else if (selectedModel === 'gemini') {
+                    provider = 'gemini';
+                } else if (selectedModel === 'openai') {
+                    provider = 'openai';
+                }
+                
+                try {
+                    const response = await fetch('/api/agent/switch-model', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ provider: provider })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        localStorage.setItem('aiModel', selectedModel);
+                        
+                        if (modelStatus) {
+                            modelStatus.textContent = `✅ ${data.new_model}`;
+                            modelStatus.className = 'ml-3 text-sm text-green-600';
+                        }
+                        
+                        this.logResult(`✅ Successfully switched to ${data.new_model}!`, 'success');
+                        alert(`✅ Successfully switched to ${data.new_model}!`);
+                        
+                    } else {
+                        throw new Error('Failed to switch model');
+                    }
+                } catch (error) {
+                    console.error('Error switching model:', error);
+                    this.logResult(`❌ Error switching model: ${error.message}`, 'error');
+                    
+                    if (modelStatus) {
+                        modelStatus.textContent = '❌ Failed to switch';
+                        modelStatus.className = 'ml-3 text-sm text-red-600';
+                    }
+                } finally {
+                    if (switchBtn) switchBtn.disabled = false;
+                }
+            }
+
+            logResult(message, type) {
+                const resultsDiv = document.getElementById('test-results');
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = `status ${type}`;
+                logEntry.innerHTML = `<strong>${timestamp}</strong>: ${message}`;
+                resultsDiv.appendChild(logEntry);
+                resultsDiv.scrollTop = resultsDiv.scrollHeight;
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new ModelSwitcher();
+        });
+    </script>
+</body>
+</html> 

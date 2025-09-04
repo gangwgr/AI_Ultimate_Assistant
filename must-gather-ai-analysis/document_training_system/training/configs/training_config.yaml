@@ -1,0 +1,17 @@
+data:
+  max_length: 512
+  padding: max_length
+  truncation: true
+model:
+  base_model: microsoft/DialoGPT-medium
+  model_type: causal_lm
+training:
+  batch_size: 2
+  epochs: 5
+  gradient_accumulation_steps: 4
+  learning_rate: 2.0e-05
+  logging_steps: 10
+  output_dir: models/document-trained
+  save_steps: 500
+  warmup_steps: 100
+  weight_decay: 0.01

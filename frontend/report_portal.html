@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Portal AI Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .loading {
+            display: none;
+        }
+        .loading.show {
+            display: block;
+        }
+        .hidden {
+            display: none;
+        }
+        .category-system_issue { background-color: #fef3c7; }
+        .category-production_bug { background-color: #fee2e2; }
+        .category-test_environment { background-color: #dbeafe; }
+        .category-infrastructure { background-color: #f3e8ff; }
+        .category-network { background-color: #ecfdf5; }
+        .category-data_issue { background-color: #fef7cd; }
+        .category-configuration { background-color: #e0e7ff; }
+        .category-timeout { background-color: #fef3c7; }
+        .category-race_condition { background-color: #fce7f3; }
+        .category-unknown { background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-chart-line text-blue-600 mr-3"></i>
+                Report Portal AI Analyzer
+            </h1>
+            <p class="text-gray-600">Automatically analyze test failures and categorize them using AI</p>
+        </div>
+
+        <!-- Configuration Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-cog text-blue-600 mr-2"></i>Configuration
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Report Portal URL</label>
+                    <input type="url" id="rp-url" placeholder="https://your-rp-instance.com" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">API Token</label>
+                    <input type="password" id="rp-token" placeholder="Your RP API token" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Project</label>
+                    <input type="text" id="rp-project" placeholder="your-project" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="ssl-verify" 
+                           class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label class="text-sm font-medium text-gray-700">SSL Verification</label>
+                    <p class="text-xs text-gray-500 ml-2">Uncheck for self-signed certificates</p>
+                </div>
+            </div>
+            
+            <button id="configure-btn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plug mr-2"></i>Configure Connection
+            </button>
+            
+            <div id="config-status" class="mt-4 hidden"></div>
+        </div>
+
+        <!-- Test Case Discovery Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">🔍 Test Case Discovery</h3>
+            
+            <!-- Discovery Filters -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Hours Back</label>
+                    <input type="number" id="discovery-hours-back" value="24" min="1" max="168" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Components</label>
+                    <input type="text" id="discovery-components" placeholder="API,STORAGE,NETWORK" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Versions</label>
+                    <input type="text" id="discovery-versions" placeholder="4.19,4.20" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Statuses</label>
+                    <input type="text" id="discovery-statuses" placeholder="FAILED,INTERRUPTED" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Limit</label>
+                    <input type="number" id="discovery-limit" value="50" min="1" max="500" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            
+            <!-- Discovery Actions -->
+            <div class="flex space-x-4 mb-4">
+                <button onclick="discoverTestCases()" 
+                        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    🔍 Discover Test Cases
+                </button>
+                <button onclick="selectAllTestCases()" 
+                        class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    ✅ Select All
+                </button>
+                <button onclick="deselectAllTestCases()" 
+                        class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    ❌ Deselect All
+                </button>
+            </div>
+            
+            <!-- Test Cases Table -->
+            <div id="test-cases-container" class="hidden">
+                <h4 class="text-md font-medium text-gray-700 mb-2">📋 Available Test Cases</h4>
+                <div class="overflow-x-auto">
+                    <table id="test-cases-table" class="min-w-full bg-white border border-gray-300">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-3 py-2 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <input type="checkbox" id="select-all-checkbox" onchange="toggleAllTestCases()">
+                                </th>
+                                <th class="px-3 py-2 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Test Name</th>
+                                <th class="px-3 py-2 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-3 py-2 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Component</th>
+                                <th class="px-3 py-2 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Version</th>
+                                <th class="px-3 py-2 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody id="test-cases-tbody">
+                            <!-- Test cases will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Selected Test Cases Summary -->
+                <div id="selected-summary" class="mt-4 p-3 bg-blue-50 rounded-md hidden">
+                    <p class="text-sm text-blue-800">
+                        <span id="selected-count">0</span> test cases selected for analysis
+                    </p>
+                </div>
+                
+                <!-- Analysis Options -->
+                <div class="mt-4 p-4 bg-gray-50 rounded-md">
+                    <h5 class="text-sm font-medium text-gray-700 mb-3">Analysis Options:</h5>
+                    <div class="flex space-x-6">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="update-comments" checked 
+                                   class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label class="text-sm font-medium text-gray-700">Update Comments</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="update-status" checked 
+                                   class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label class="text-sm font-medium text-gray-700">Update Status</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="generate-report" checked 
+                                   class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label class="text-sm font-medium text-gray-700">Generate Report</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Analyze Selected Button -->
+                <div class="mt-4">
+                    <button onclick="analyzeSelectedTestCases()" 
+                            class="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        🚀 Analyze Selected Test Cases
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="loading bg-white rounded-lg shadow-md p-6 mb-8 text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p class="text-gray-600" id="loading-text">Analyzing test failures...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="hidden">
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-exclamation-triangle text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Total Failures</p>
+                            <p class="text-2xl font-bold text-gray-900" id="total-failures">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fas fa-comments text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Comments Updated</p>
+                            <p class="text-2xl font-bold text-gray-900" id="comments-updated">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                            <i class="fas fa-tags text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Status Updated</p>
+                            <p class="text-2xl font-bold text-gray-900" id="status-updated">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                            <i class="fas fa-chart-pie text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Categories</p>
+                            <p class="text-2xl font-bold text-gray-900" id="categories-count">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Breakdown -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-chart-bar text-blue-600 mr-2"></i>Category Breakdown
+                </h3>
+                <div id="categories-breakdown" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+
+            <!-- Priority Breakdown -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-chart-pie text-green-600 mr-2"></i>Priority Breakdown
+                </h3>
+                <div id="priorities-breakdown" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+
+            <!-- Failures List -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-list text-green-600 mr-2"></i>Analyzed Failures
+                </h3>
+                <div id="failures-list" class="space-y-4"></div>
+            </div>
+
+            <!-- Report Section -->
+            <div id="report-section" class="bg-white rounded-lg shadow-md p-6 mb-8 hidden">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-file-alt text-purple-600 mr-2"></i>Analysis Report
+                </h3>
+                <div id="report-content" class="prose max-w-none bg-gray-50 p-4 rounded-md"></div>
+            </div>
+        </div>
+
+        <!-- Error Display -->
+        <div id="error-display" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span id="error-message"></span>
+        </div>
+    </div>
+
+    <script>
+        class ReportPortalAnalyzer {
+            constructor() {
+                this.apiBase = 'http://localhost:8000/api/report-portal';
+                this.initializeEventListeners();
+                this.loadSavedConfig();
+            }
+
+            initializeEventListeners() {
+                document.getElementById('configure-btn').addEventListener('click', () => this.configureConnection());
+            }
+
+            loadSavedConfig() {
+                const savedConfig = localStorage.getItem('rp-config');
+                if (savedConfig) {
+                    const config = JSON.parse(savedConfig);
+                    document.getElementById('rp-url').value = config.rp_url || '';
+                    document.getElementById('rp-token').value = config.rp_token || '';
+                    document.getElementById('rp-project').value = config.rp_project || '';
+                    document.getElementById('ssl-verify').checked = config.ssl_verify === true; // Default to false for Red Hat internal systems
+                }
+            }
+
+            saveConfig() {
+                const config = {
+                    rp_url: document.getElementById('rp-url').value,
+                    rp_token: document.getElementById('rp-token').value,
+                    rp_project: document.getElementById('rp-project').value,
+                    ssl_verify: document.getElementById('ssl-verify').checked
+                };
+                localStorage.setItem('rp-config', JSON.stringify(config));
+            }
+
+            showLoading(text = 'Processing...') {
+                document.getElementById('loading-text').textContent = text;
+                document.getElementById('loading').classList.add('show');
+                document.getElementById('results').classList.add('hidden');
+                document.getElementById('error-display').classList.add('hidden');
+            }
+
+            hideLoading() {
+                document.getElementById('loading').classList.remove('show');
+            }
+
+            showError(message) {
+                document.getElementById('error-message').textContent = message;
+                document.getElementById('error-display').classList.remove('hidden');
+            }
+
+            hideError() {
+                document.getElementById('error-display').classList.add('hidden');
+            }
+
+            async configureConnection() {
+                this.showLoading('Configuring connection...');
+                this.hideError();
+
+                try {
+                    const config = {
+                        rp_url: document.getElementById('rp-url').value,
+                        rp_token: document.getElementById('rp-token').value,
+                        project: document.getElementById('rp-project').value,
+                        ssl_verify: document.getElementById('ssl-verify').checked
+                    };
+
+                    // Debug logging
+                    console.log('Sending configuration:', config);
+                    console.log('SSL verify checkbox checked:', document.getElementById('ssl-verify').checked);
+
+                    if (!config.rp_url || !config.rp_token || !config.project) {
+                        throw new Error('Please fill in all configuration fields');
+                    }
+
+                    this.saveConfig();
+
+                    const response = await fetch(`${this.apiBase}/configure`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(config)
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.detail || 'Configuration failed');
+                    }
+
+                    document.getElementById('config-status').innerHTML = `
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            ${result.message}
+                        </div>
+                    `;
+                    document.getElementById('config-status').classList.remove('hidden');
+
+                } catch (error) {
+                    this.showError(error.message);
+                } finally {
+                    this.hideLoading();
+                }
+            }
+
+            async analyzeFailures() {
+                this.showLoading('Analyzing test failures...');
+                this.hideError();
+
+                try {
+                    const componentsText = document.getElementById('discovery-components').value.trim();
+                    const components = componentsText ? componentsText.split(',').map(c => c.trim()).filter(c => c) : null;
+                    
+                    const request = {
+                        hours_back: parseInt(document.getElementById('discovery-hours-back').value),
+                        components: components,
+                        max_tests: parseInt(document.getElementById('discovery-limit').value),
+                        batch_size: 25, // Default batch size
+                        update_comments: document.getElementById('update-comments').checked,
+                        update_status: document.getElementById('update-status').checked,
+                        generate_report: document.getElementById('generate-report').checked
+                    };
+
+                    const response = await fetch(`${this.apiBase}/analyze-failures`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(request)
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.detail || 'Analysis failed');
+                    }
+
+                    this.displayResults(result);
+
+                } catch (error) {
+                    this.showError(error.message);
+                } finally {
+                    this.hideLoading();
+                }
+            }
+
+            async discoverComponents() {
+                this.showLoading('Discovering available components...');
+                this.hideError();
+
+                try {
+                    const hoursBack = parseInt(document.getElementById('discovery-hours-back').value);
+                    const response = await fetch(`${this.apiBase}/components?hours_back=${hoursBack}`);
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.detail || 'Component discovery failed');
+                    }
+
+                    this.displayComponents(result.components);
+
+                } catch (error) {
+                    this.showError(error.message);
+                } finally {
+                    this.hideLoading();
+                }
+            }
+
+            displayComponents(components) {
+                const container = document.getElementById('components-display');
+                if (!container) {
+                    // Create components display section if it doesn't exist
+                    const resultsSection = document.getElementById('results');
+                    const componentsSection = document.createElement('div');
+                    componentsSection.id = 'components-display';
+                    componentsSection.className = 'bg-white rounded-lg shadow-md p-6 mb-8';
+                    componentsSection.innerHTML = `
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-cube text-blue-600 mr-2"></i>Available Components
+                        </h3>
+                        <div class="flex flex-wrap gap-2" id="components-list"></div>
+                    `;
+                    resultsSection.insertBefore(componentsSection, resultsSection.firstChild);
+                }
+
+                const componentsList = document.getElementById('components-list');
+                componentsList.innerHTML = '';
+
+                components.forEach(component => {
+                    const chip = document.createElement('span');
+                    chip.className = 'px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium cursor-pointer hover:bg-blue-200';
+                    chip.textContent = component;
+                    chip.onclick = () => {
+                        const componentsInput = document.getElementById('components');
+                        const currentValue = componentsInput.value;
+                        const newValue = currentValue ? `${currentValue},${component}` : component;
+                        componentsInput.value = newValue;
+                    };
+                    componentsList.appendChild(chip);
+                });
+
+                document.getElementById('results').classList.remove('hidden');
+            }
+
+            async generateReport() {
+                this.showLoading('Generating report...');
+                this.hideError();
+
+                try {
+                    const hoursBack = parseInt(document.getElementById('discovery-hours-back').value);
+                    const response = await fetch(`${this.apiBase}/report?hours_back=${hoursBack}`);
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.detail || 'Report generation failed');
+                    }
+
+                    this.displayReport(result.report);
+
+                } catch (error) {
+                    this.showError(error.message);
+                } finally {
+                    this.hideLoading();
+                }
+            }
+
+            displayResults(result) {
+                // Update summary cards
+                document.getElementById('total-failures').textContent = result.total_failures;
+                document.getElementById('comments-updated').textContent = result.comments_updated;
+                document.getElementById('status-updated').textContent = result.status_updated;
+                document.getElementById('categories-count').textContent = Object.keys(result.categories).length;
+
+                // Display category breakdown
+                this.displayCategoryBreakdown(result.categories);
+
+                // Display failures list
+                this.displayFailuresList(result);
+
+                // Display report if available
+                if (result.report) {
+                    this.displayReport(result.report);
+                }
+
+                document.getElementById('results').classList.remove('hidden');
+            }
+
+            displayCategoryBreakdown(categories) {
+                const container = document.getElementById('category-breakdown');
+                container.innerHTML = '';
+
+                const categoryNames = {
+                    'system_issue': 'System Issue',
+                    'production_bug': 'Production Bug',
+                    'test_environment': 'Test Environment',
+                    'infrastructure': 'Infrastructure',
+                    'network': 'Network',
+                    'data_issue': 'Data Issue',
+                    'configuration': 'Configuration',
+                    'timeout': 'Timeout',
+                    'race_condition': 'Race Condition',
+                    'unknown': 'Unknown'
+                };
+
+                const categoryIcons = {
+                    'system_issue': 'fas fa-server',
+                    'production_bug': 'fas fa-bug',
+                    'test_environment': 'fas fa-flask',
+                    'infrastructure': 'fas fa-building',
+                    'network': 'fas fa-network-wired',
+                    'data_issue': 'fas fa-database',
+                    'configuration': 'fas fa-cog',
+                    'timeout': 'fas fa-clock',
+                    'race_condition': 'fas fa-running',
+                    'unknown': 'fas fa-question'
+                };
+
+                for (const [category, count] of Object.entries(categories)) {
+                    const card = document.createElement('div');
+                    card.className = `category-${category} p-4 rounded-lg border`;
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="${categoryIcons[category] || 'fas fa-question'} text-lg mr-3"></i>
+                                <div>
+                                    <p class="font-semibold">${categoryNames[category] || category}</p>
+                                    <p class="text-sm text-gray-600">${count} failures</p>
+                                </div>
+                            </div>
+                            <span class="text-2xl font-bold">${count}</span>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                }
+            }
+
+            displayFailuresList(result) {
+                const container = document.getElementById('failures-list');
+                container.innerHTML = '';
+
+                if (result.failures && result.failures.length > 0) {
+                    result.failures.forEach(failure => {
+                        const card = document.createElement('div');
+                        card.className = `category-${failure.category} p-4 rounded-lg border mb-4`;
+                        card.innerHTML = `
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-lg mb-2">${failure.test_name}</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                                        <div>
+                                            <span class="font-medium">Category:</span> ${failure.category.replace('_', ' ')}
+                                        </div>
+                                        <div>
+                                            <span class="font-medium">Confidence:</span> ${(failure.confidence * 100).toFixed(1)}%
+                                        </div>
+                                        <div>
+                                            <span class="font-medium">Priority:</span> ${failure.priority}
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <p class="font-medium">Analysis:</p>
+                                        <p class="text-gray-700">${failure.analysis}</p>
+                                    </div>
+                                    <div class="mt-3">
+                                        <p class="font-medium">Suggested Fix:</p>
+                                        <p class="text-gray-700">${failure.suggested_fix}</p>
+                                    </div>
+                                    <div class="mt-3">
+                                        <p class="font-medium">Tags:</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            ${failure.tags.map(tag => `<span class="bg-gray-200 px-2 py-1 rounded text-xs">${tag}</span>`).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                } else {
+                    container.innerHTML = '<p class="text-gray-600 text-center py-8">No failures found in the specified time range.</p>';
+                }
+            }
+
+            displayReport(report) {
+                const container = document.getElementById('report-content');
+                container.innerHTML = report.replace(/\n/g, '<br>');
+                document.getElementById('report-section').classList.remove('hidden');
+            }
+        }
+
+        // Test Case Discovery and Selection Functions
+        let discoveredTestCases = [];
+        let selectedTestCases = new Set();
+
+        async function discoverTestCases() {
+            const hoursBack = document.getElementById('discovery-hours-back').value;
+            const components = document.getElementById('discovery-components').value;
+            const versions = document.getElementById('discovery-versions').value;
+            const statuses = document.getElementById('discovery-statuses').value;
+            const limit = document.getElementById('discovery-limit').value;
+
+            try {
+                showLoading('Discovering test cases...');
+                
+                const params = new URLSearchParams({
+                    hours_back: hoursBack,
+                    limit: limit
+                });
+                
+                if (components) params.append('components', components);
+                if (versions) params.append('versions', versions);
+                if (statuses) params.append('statuses', statuses);
+
+                const response = await fetch(`/api/report-portal/test-cases?${params}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    discoveredTestCases = data.test_cases || [];
+                    displayTestCases(discoveredTestCases);
+                    hideLoading();
+                    
+                    showMessage(`Found ${discoveredTestCases.length} test cases`, 'success');
+                } else {
+                    const error = await response.text();
+                    hideLoading();
+                    showMessage(`Failed to discover test cases: ${error}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showMessage(`Error discovering test cases: ${error.message}`, 'error');
+            }
+        }
+
+        function displayTestCases(testCases) {
+            const tbody = document.getElementById('test-cases-tbody');
+            const container = document.getElementById('test-cases-container');
+            
+            tbody.innerHTML = '';
+            
+            if (testCases.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-3 py-2 text-center text-gray-500">No test cases found</td></tr>';
+            } else {
+                testCases.forEach((testCase, index) => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50';
+                    
+                    const duration = testCase.duration ? `${Math.round(testCase.duration / 1000)}s` : 'N/A';
+                    const statusClass = testCase.status === 'FAILED' ? 'text-red-600' : 
+                                      testCase.status === 'INTERRUPTED' ? 'text-orange-600' : 'text-gray-600';
+                    
+                    row.innerHTML = `
+                        <td class="px-3 py-2 border-b">
+                            <input type="checkbox" class="test-case-checkbox" value="${testCase.id}" 
+                                   onchange="toggleTestCaseSelection('${testCase.id}')">
+                        </td>
+                        <td class="px-3 py-2 border-b text-sm text-gray-900">${testCase.name}</td>
+                        <td class="px-3 py-2 border-b text-sm ${statusClass}">${testCase.status}</td>
+                        <td class="px-3 py-2 border-b text-sm text-gray-600">${testCase.component}</td>
+                        <td class="px-3 py-2 border-b text-sm text-gray-600">${testCase.version}</td>
+                        <td class="px-3 py-2 border-b text-sm text-gray-600">${duration}</td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+            }
+            
+            container.classList.remove('hidden');
+            updateSelectedSummary();
+        }
+
+        function toggleTestCaseSelection(testId) {
+            if (selectedTestCases.has(testId)) {
+                selectedTestCases.delete(testId);
+            } else {
+                selectedTestCases.add(testId);
+            }
+            updateSelectedSummary();
+        }
+
+        function selectAllTestCases() {
+            const checkboxes = document.querySelectorAll('.test-case-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+                selectedTestCases.add(checkbox.value);
+            });
+            document.getElementById('select-all-checkbox').checked = true;
+            updateSelectedSummary();
+        }
+
+        function deselectAllTestCases() {
+            const checkboxes = document.querySelectorAll('.test-case-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                selectedTestCases.delete(checkbox.value);
+            });
+            document.getElementById('select-all-checkbox').checked = false;
+            updateSelectedSummary();
+        }
+
+        function toggleAllTestCases() {
+            const selectAllCheckbox = document.getElementById('select-all-checkbox');
+            const checkboxes = document.querySelectorAll('.test-case-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+                if (selectAllCheckbox.checked) {
+                    selectedTestCases.add(checkbox.value);
+                } else {
+                    selectedTestCases.delete(checkbox.value);
+                }
+            });
+            
+            updateSelectedSummary();
+        }
+
+        function updateSelectedSummary() {
+            const summary = document.getElementById('selected-summary');
+            const count = document.getElementById('selected-count');
+            
+            count.textContent = selectedTestCases.size;
+            
+            if (selectedTestCases.size > 0) {
+                summary.classList.remove('hidden');
+            } else {
+                summary.classList.add('hidden');
+            }
+        }
+
+        function displayAnalysisResults(result) {
+            // Display the analysis results in the existing results section
+            const resultsSection = document.getElementById('results');
+            
+            // Update the summary statistics
+            document.getElementById('total-failures').textContent = result.total_failures || 0;
+            document.getElementById('comments-updated').textContent = result.comments_updated || 0;
+            document.getElementById('status-updated').textContent = result.status_updated || 0;
+            
+            // Update categories breakdown
+            const categoriesContainer = document.getElementById('categories-breakdown');
+            categoriesContainer.innerHTML = '';
+            
+            if (result.categories && Object.keys(result.categories).length > 0) {
+                Object.entries(result.categories).forEach(([category, count]) => {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'bg-gray-100 rounded-lg p-3 mb-2';
+                    categoryDiv.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">${category.replace('_', ' ')}</span>
+                            <span class="bg-blue-500 text-white px-2 py-1 rounded text-sm">${count}</span>
+                        </div>
+                    `;
+                    categoriesContainer.appendChild(categoryDiv);
+                });
+            } else {
+                categoriesContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No categories found</p>';
+            }
+            
+            // Update priorities breakdown
+            const prioritiesContainer = document.getElementById('priorities-breakdown');
+            prioritiesContainer.innerHTML = '';
+            
+            if (result.priorities && Object.keys(result.priorities).length > 0) {
+                Object.entries(result.priorities).forEach(([priority, count]) => {
+                    const priorityDiv = document.createElement('div');
+                    priorityDiv.className = 'bg-gray-100 rounded-lg p-3 mb-2';
+                    priorityDiv.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">${priority}</span>
+                            <span class="bg-green-500 text-white px-2 py-1 rounded text-sm">${count}</span>
+                        </div>
+                    `;
+                    prioritiesContainer.appendChild(priorityDiv);
+                });
+            } else {
+                prioritiesContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No priorities found</p>';
+            }
+            
+            // Display individual failures if available
+            if (result.failures && result.failures.length > 0) {
+                const failuresContainer = document.getElementById('failures-list');
+                failuresContainer.innerHTML = '';
+                
+                result.failures.forEach(failure => {
+                    const failureDiv = document.createElement('div');
+                    failureDiv.className = 'bg-white border border-gray-200 rounded-lg p-4 mb-4';
+                    failureDiv.innerHTML = `
+                        <div class="flex items-start justify-between mb-3">
+                            <h4 class="font-semibold text-lg text-gray-800">${failure.test_name}</h4>
+                            <span class="bg-${failure.category === 'SYSTEM_ISSUE' ? 'red' : failure.category === 'PRODUCTION_BUG' ? 'orange' : 'blue'}-500 text-white px-2 py-1 rounded text-sm">
+                                ${failure.category.replace('_', ' ')}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-3">
+                            <div>
+                                <span class="font-medium">Confidence:</span> ${(failure.confidence * 100).toFixed(1)}%
+                            </div>
+                            <div>
+                                <span class="font-medium">Priority:</span> ${failure.priority}
+                            </div>
+                            <div>
+                                <span class="font-medium">Duration:</span> ${failure.duration}s
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <p class="font-medium text-gray-700">Analysis:</p>
+                            <p class="text-gray-600">${failure.ai_analysis}</p>
+                        </div>
+                        <div class="mb-3">
+                            <p class="font-medium text-gray-700">Suggested Fix:</p>
+                            <p class="text-gray-600">${failure.suggested_fix}</p>
+                        </div>
+                        <div class="mb-3">
+                            <p class="font-medium text-gray-700">Failure Message:</p>
+                            <p class="text-red-600 font-mono text-sm bg-red-50 p-2 rounded">${failure.failure_message || 'No failure message available'}</p>
+                        </div>
+                        <div class="mb-3">
+                            <p class="font-medium text-gray-700">Test Logs:</p>
+                            <div class="bg-gray-900 text-green-400 p-3 rounded font-mono text-xs overflow-x-auto max-h-64 overflow-y-auto">
+                                <pre>${failure.stack_trace || 'No logs available'}</pre>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-700">Tags:</p>
+                            <div class="flex flex-wrap gap-2 mt-1">
+                                ${failure.tags.map(tag => `<span class="bg-gray-200 px-2 py-1 rounded text-xs">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                    failuresContainer.appendChild(failureDiv);
+                });
+            } else {
+                const failuresContainer = document.getElementById('failures-list');
+                failuresContainer.innerHTML = '<p class="text-gray-600 text-center py-8">No detailed failure information available.</p>';
+            }
+            
+            // Show the results section
+            resultsSection.classList.remove('hidden');
+            
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function analyzeSelectedTestCases() {
+            if (selectedTestCases.size === 0) {
+                showMessage('Please select at least one test case to analyze', 'warning');
+                return;
+            }
+
+            const updateComments = document.getElementById('update-comments').checked;
+            const updateStatus = document.getElementById('update-status').checked;
+            const generateReport = document.getElementById('generate-report').checked;
+
+            try {
+                showLoading(`Analyzing ${selectedTestCases.size} selected test cases...`);
+                
+                const response = await fetch('/api/report-portal/analyze-selected', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        test_ids: Array.from(selectedTestCases),
+                        update_comments: updateComments,
+                        update_status: updateStatus,
+                        generate_report: generateReport
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    hideLoading();
+                    displayAnalysisResults(result);
+                    showMessage(`Successfully analyzed ${result.analyzed_failures} test cases`, 'success');
+                } else {
+                    const error = await response.text();
+                    hideLoading();
+                    showMessage(`Failed to analyze selected test cases: ${error}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showMessage(`Error analyzing selected test cases: ${error.message}`, 'error');
+            }
+        }
+
+        // Utility functions for UI feedback
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `fixed top-4 right-4 p-4 rounded-md shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-100 border border-green-400 text-green-700' :
+                type === 'error' ? 'bg-red-100 border border-red-400 text-red-700' :
+                type === 'warning' ? 'bg-yellow-100 border border-yellow-400 text-yellow-700' :
+                'bg-blue-100 border border-blue-400 text-blue-700'
+            }`;
+            messageDiv.innerHTML = `
+                <div class="flex items-center">
+                    <span class="mr-2">
+                        ${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}
+                    </span>
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-gray-500 hover:text-gray-700">
+                        ×
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(messageDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (messageDiv.parentElement) {
+                    messageDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function showLoading(message = 'Loading...') {
+            // Remove existing loading overlay
+            const existingOverlay = document.getElementById('loading-overlay');
+            if (existingOverlay) {
+                existingOverlay.remove();
+            }
+
+            const overlay = document.createElement('div');
+            overlay.id = 'loading-overlay';
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            overlay.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <div class="flex items-center">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-4"></div>
+                        <span class="text-lg">${message}</span>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+
+        // Initialize the analyzer when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new ReportPortalAnalyzer();
+        });
+    </script>
+</body>
+</html>

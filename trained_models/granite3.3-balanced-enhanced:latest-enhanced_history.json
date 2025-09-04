@@ -1,0 +1,12 @@
+[
+  {
+    "timestamp": "2025-07-28T23:06:39.953515",
+    "base_model": "granite3.3-balanced-enhanced:latest-enhanced",
+    "enhanced_model": "granite3.3-balanced-enhanced:latest-enhanced-enhanced",
+    "sources_processed": [
+      "custom_content"
+    ],
+    "total_examples": 4,
+    "new_examples": 2
+  }
+]

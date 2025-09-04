@@ -1,0 +1,32 @@
+[
+  {
+    "timestamp": "2025-07-28T21:57:23.643547",
+    "base_model": "granite3.3-balanced-enhanced:latest",
+    "enhanced_model": "granite3.3-balanced-enhanced:latest-enhanced",
+    "sources_processed": [
+      "https://issues.redhat.com/browse/OCPQE-30241"
+    ],
+    "total_examples": 2,
+    "new_examples": 1
+  },
+  {
+    "timestamp": "2025-07-28T22:55:47.746518",
+    "base_model": "granite3.3-balanced-enhanced:latest",
+    "enhanced_model": "granite3.3-balanced-enhanced:latest-enhanced",
+    "sources_processed": [
+      "https://httpbin.org/html"
+    ],
+    "total_examples": 5,
+    "new_examples": 2
+  },
+  {
+    "timestamp": "2025-07-28T23:22:26.279473",
+    "base_model": "granite3.3-balanced-enhanced:latest",
+    "enhanced_model": "granite3.3-balanced-enhanced:latest-enhanced",
+    "sources_processed": [
+      "jira_ocpqe_30241"
+    ],
+    "total_examples": 11,
+    "new_examples": 4
+  }
+]

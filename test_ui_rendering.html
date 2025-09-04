@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Review UI Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">AI Review UI Test</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Test AI Review Comments</h2>
+            <button onclick="testUI()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                Test UI Rendering
+            </button>
+            <p class="text-sm text-gray-600 mt-2">This shows exactly how the AI review comments should appear with selection controls.</p>
+        </div>
+
+        <!-- Auto Review Modal -->
+        <div id="auto-review-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">AI Review Comments - Edit & Select</h3>
+                            <button onclick="hideModal()" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div id="auto-review-comments" class="space-y-4">
+                            <!-- AI-generated comments will be shown here -->
+                        </div>
+                        <div class="flex justify-end gap-3 mt-4">
+                            <button onclick="hideModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                            <button onclick="postSelected()" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">Post Selected Comments</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let _pendingAIComments = [];
+
+        function testUI() {
+            // Simulate AI review comments in the format we expect
+            const testComments = [
+                {
+                    file: "test/extended/apiserverauth/apiserver.go",
+                    line: 24,
+                    body: "1. Code Quality: The line imports the CBOR (Concise Binary Object Representation) library version 2 by fxamacker, which is a standard choice for handling binary data in Go. It's a good practice to use established libraries for specific tasks like this. 2. Potential Issues: Without further context, it's hard to identify potential issues. However, one consideration could be the additional dependency. Ensure that the project has a valid reason for using CBOR and that it's necessary before introducing an external library. 3. Suggestions for Improvement: - Verify if the chosen CBOR library version is compatible with other parts of the codebase and meets the project's specific needs. - Consider adding comments explaining why this library is being used, as it might not be immediately clear to other developers or maintainers. - Ensure that the library is properly updated and maintained to avoid potential security vulnerabilities or compatibility issues in the future. LGTM if no major concerns are identified after considering the points above."
+                },
+                {
+                    file: "test/extended/apiserverauth/apiserver.go",
+                    line: 7288,
+                    body: "1. Code Quality: The code is a simple line of documentation comment indicating the author's email address. It adheres to the standard practice of including author information in source code files. 2. Potential Issues: There are no apparent logic, performance, or security issues with this line of code as it is purely a documentation comment. However, ensure that all authors consistently provide such information for maintainability and accountability. 3. Suggestions for Improvement: - Consistency: Ensure other code contributors follow the same practice of including their contact information in comments. This helps in tracing issues and discussions related to specific code changes. - Clarity: The comment is clear and concise, mentioning only the author's email address. No further improvements are necessary in this case. LGTM (No Issues Found)"
+                },
+                {
+                    file: "test/extended/apiserverauth/apiserver.go",
+                    line: 7289,
+                    body: "1. Code Quality: The code snippet provided is written in Go (Golang) and appears to be part of a test suite for the Kubernetes API server, specifically focusing on authentication and authorization. The use of table-driven tests (g.It) is a good practice as it helps in organizing and running tests effectively. 2. Potential Issues: - The test description string seems quite verbose and contains specific context that might not be relevant for all readers. It would be better to keep the description concise and focused on the primary test objective. - There's no clear input or expected output specified in the test function, making it harder to understand what the test is verifying. 3. Suggestions for improvement: - Refactor the test description to focus on the main verification point: \"Verify the CBOR workflow\". - Inside the test function, add comments describing the test's purpose, input, and expected output. This will improve readability and maintainability of the test."
+                }
+            ];
+
+            showAIReviewPreview(testComments);
+        }
+
+        function showAIReviewPreview(comments) {
+            const modal = document.getElementById('auto-review-modal');
+            const commentsDiv = document.getElementById('auto-review-comments');
+            
+            console.log('AI Review Comments:', comments);
+            
+            if (!comments || comments.length === 0) {
+                commentsDiv.innerHTML = '<p class="text-gray-500">No issues found. LGTM! 🚀</p>';
+            } else {
+                // Convert comments to array if it's not already
+                const commentsArray = Array.isArray(comments) ? comments : [comments];
+                
+                commentsDiv.innerHTML = commentsArray.map((comment, index) => {
+                    console.log(`Comment ${index}:`, comment);
+                    
+                    // Handle different comment formats
+                    let file = 'Unknown File';
+                    let line = 'Unknown Line';
+                    let body = 'No comment text';
+                    
+                    if (typeof comment === 'string') {
+                        // If comment is just a string, treat it as the body
+                        body = comment;
+                    } else if (comment && typeof comment === 'object') {
+                        file = comment.file || comment.filename || comment.fileName || 'Unknown File';
+                        line = comment.line || comment.line_number || comment.lineNumber || 'Unknown Line';
+                        body = comment.body || comment.comment || comment.text || comment.content || 'No comment text';
+                    }
+                    
+                    // Escape HTML to prevent XSS
+                    const escapedBody = escapeHtml(body);
+                    const escapedFile = escapeHtml(file);
+                    const escapedLine = escapeHtml(line.toString());
+                    
+                    return `
+                        <div class="bg-white border rounded-lg p-4 mb-4 shadow-sm" data-comment-index="${index}">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <input type="checkbox" id="select-comment-${index}" checked 
+                                           class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300">
+                                    <label for="select-comment-${index}" class="font-medium text-gray-700 cursor-pointer">
+                                        ${escapedFile} <span class="text-xs text-gray-500">Line ${escapedLine}</span>
+                                    </label>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="editAIComment(${index})" 
+                                            class="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded hover:bg-blue-50">
+                                        <i class="fas fa-edit mr-1"></i>Edit
+                                    </button>
+                                    <button onclick="postSingleComment(${index})" 
+                                            class="text-green-600 hover:text-green-800 text-sm px-2 py-1 rounded hover:bg-green-50">
+                                        <i class="fas fa-paper-plane mr-1"></i>Post Now
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="comment-content" id="ai-comment-content-${index}">
+                                <div class="bg-gray-50 p-3 rounded text-sm whitespace-pre-wrap border">${escapedBody}</div>
+                            </div>
+                            <div class="comment-edit-form hidden" id="ai-comment-edit-${index}">
+                                <textarea class="w-full p-3 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="6">${escapedBody}</textarea>
+                                <div class="flex space-x-2 mt-2">
+                                    <button onclick="saveAICommentEdit(${index})" 
+                                            class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 focus:ring-2 focus:ring-blue-500">
+                                        Save
+                                    </button>
+                                    <button onclick="cancelAICommentEdit(${index})" 
+                                            class="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 focus:ring-2 focus:ring-gray-500">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            modal.classList.remove('hidden');
+            _pendingAIComments = Array.isArray(comments) ? comments : [comments];
+            
+            console.log(`Rendered ${_pendingAIComments.length} comments with selection controls`);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function hideModal() {
+            document.getElementById('auto-review-modal').classList.add('hidden');
+        }
+
+        function editAIComment(index) {
+            const contentDiv = document.getElementById(`ai-comment-content-${index}`);
+            const editDiv = document.getElementById(`ai-comment-edit-${index}`);
+            
+            contentDiv.classList.add('hidden');
+            editDiv.classList.remove('hidden');
+        }
+
+        function saveAICommentEdit(index) {
+            const editDiv = document.getElementById(`ai-comment-edit-${index}`);
+            const textarea = editDiv.querySelector('textarea');
+            const contentDiv = document.getElementById(`ai-comment-content-${index}`);
+            const contentDisplay = contentDiv.querySelector('div');
+            
+            const newText = textarea.value.trim();
+            if (!newText) {
+                alert('Comment cannot be empty');
+                return;
+            }
+            
+            // Update the comment in our pending comments array
+            _pendingAIComments[index].body = newText;
+            
+            // Update the display
+            contentDisplay.textContent = newText;
+            
+            // Hide edit form
+            editDiv.classList.add('hidden');
+            contentDiv.classList.remove('hidden');
+            
+            alert('Comment updated!');
+        }
+
+        function cancelAICommentEdit(index) {
+            const contentDiv = document.getElementById(`ai-comment-content-${index}`);
+            const editDiv = document.getElementById(`ai-comment-edit-${index}`);
+            const textarea = editDiv.querySelector('textarea');
+            
+            // Restore original text
+            textarea.value = _pendingAIComments[index].body;
+            
+            editDiv.classList.add('hidden');
+            contentDiv.classList.remove('hidden');
+        }
+
+        function postSingleComment(index) {
+            const comment = _pendingAIComments[index];
+            alert(`Posting comment for ${comment.file} Line ${comment.line}`);
+            
+            // Mark as posted and disable the checkbox
+            const checkbox = document.getElementById(`select-comment-${index}`);
+            checkbox.checked = false;
+            checkbox.disabled = true;
+            
+            // Update button text
+            const button = checkbox.closest('.bg-white').querySelector('button[onclick*="postSingleComment"]');
+            button.innerHTML = '<i class="fas fa-check mr-1"></i>Posted';
+            button.disabled = true;
+            button.className = 'text-gray-500 text-sm cursor-not-allowed';
+        }
+
+        function postSelected() {
+            // Get selected comments
+            const selectedComments = [];
+            _pendingAIComments.forEach((comment, index) => {
+                const checkbox = document.getElementById(`select-comment-${index}`);
+                if (checkbox && checkbox.checked && !checkbox.disabled) {
+                    selectedComments.push(comment);
+                }
+            });
+            
+            if (selectedComments.length === 0) {
+                alert('Please select at least one comment to post');
+                return;
+            }
+            
+            alert(`Posting ${selectedComments.length} selected comments`);
+            hideModal();
+        }
+    </script>
+</body>
+</html>

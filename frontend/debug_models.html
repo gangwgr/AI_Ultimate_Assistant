@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Model Loading</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .loading { background: #fff3cd; color: #856404; }
+        select { width: 300px; padding: 8px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Model Loading</h1>
+    
+    <button onclick="testModelLoading()">Test Model Loading</button>
+    <button onclick="testModelSwitching()">Test Model Switching</button>
+    
+    <h3>Model Dropdown:</h3>
+    <select id="model-select">
+        <option value="">Loading models...</option>
+    </select>
+    
+    <div id="results"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        async function testModelLoading() {
+            log('🔄 Testing model loading...', 'loading');
+            
+            try {
+                const response = await fetch('/api/models/available', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'list' })
+                });
+                
+                log(`📊 API response status: ${response.status}`, 'info');
+                
+                if (response.ok) {
+                    const models = await response.json();
+                    log(`✅ Successfully loaded ${models.length} models: ${models.join(', ')}`, 'success');
+                    
+                    // Update dropdown
+                    const select = document.getElementById('model-select');
+                    select.innerHTML = '';
+                    
+                    // Add external providers
+                    const externalProviders = [
+                        { value: 'gemini', text: 'Google Gemini 2.5 Flash' },
+                        { value: 'openai', text: 'OpenAI GPT-4' }
+                    ];
+                    
+                    externalProviders.forEach(provider => {
+                        const option = document.createElement('option');
+                        option.value = provider.value;
+                        option.textContent = provider.text;
+                        select.appendChild(option);
+                    });
+                    
+                    // Add separator
+                    if (models.length > 0) {
+                        const separator = document.createElement('option');
+                        separator.disabled = true;
+                        separator.textContent = '────────── Ollama Models ──────────';
+                        select.appendChild(separator);
+                    }
+                    
+                    // Add Ollama models
+                    models.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model;
+                        option.textContent = `🤖 ${model}`;
+                        select.appendChild(option);
+                    });
+                    
+                    log(`✅ Dropdown updated with ${models.length} Ollama models + ${externalProviders.length} external providers`, 'success');
+                    
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ API error: ${response.status} - ${errorText}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testModelSwitching() {
+            const selectedModel = document.getElementById('model-select').value;
+            if (!selectedModel) {
+                log('❌ Please select a model first', 'error');
+                return;
+            }
+            
+            log(`🔄 Testing model switching to: ${selectedModel}`, 'loading');
+            
+            try {
+                // Map model names to providers
+                let provider = selectedModel;
+                if (selectedModel.includes('granite3.3')) {
+                    provider = 'ollama';
+                } else if (selectedModel === 'gemini') {
+                    provider = 'gemini';
+                } else if (selectedModel === 'openai') {
+                    provider = 'openai';
+                } else {
+                    provider = 'ollama'; // Default for other Ollama models
+                }
+                
+                const response = await fetch('/api/agent/switch-model', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider: provider })
+                });
+                
+                log(`📊 Switch response status: ${response.status}`, 'info');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Model switched successfully to: ${data.new_model}`, 'success');
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ Switch error: ${response.status} - ${errorText}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-load models when page loads
+        window.addEventListener('load', () => {
+            log('🚀 Page loaded, testing model loading...', 'loading');
+            setTimeout(testModelLoading, 1000);
+        });
+    </script>
+</body>
+</html> 

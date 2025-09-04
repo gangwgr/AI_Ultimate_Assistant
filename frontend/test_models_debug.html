@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Loading Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        select { width: 100%; padding: 10px; margin: 10px 0; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Model Loading Debug</h1>
+    
+    <div class="debug">
+        <h3>Debug Info:</h3>
+        <div id="debug-info">Loading...</div>
+    </div>
+    
+    <div>
+        <h3>Test Model Select:</h3>
+        <select id="test-model-select">
+            <option value="">Loading models...</option>
+        </select>
+        <button onclick="loadModels()">Load Models</button>
+        <button onclick="clearModels()">Clear Models</button>
+    </div>
+    
+    <div>
+        <h3>Model Count:</h3>
+        <div id="model-count">0</div>
+    </div>
+
+    <script>
+        async function loadModels() {
+            const debugInfo = document.getElementById('debug-info');
+            const select = document.getElementById('test-model-select');
+            const modelCount = document.getElementById('model-count');
+            
+            debugInfo.innerHTML = '🔍 Starting to load models...';
+            
+            try {
+                debugInfo.innerHTML += '<br>📡 Making API request...';
+                
+                const response = await fetch('/api/models/available', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'list' })
+                });
+                
+                debugInfo.innerHTML += `<br>📊 Response status: ${response.status}`;
+                
+                if (response.ok) {
+                    const models = await response.json();
+                    debugInfo.innerHTML += `<br>📋 Received ${models.length} models`;
+                    debugInfo.innerHTML += `<br>📝 Models: ${models.join(', ')}`;
+                    
+                    // Clear existing options
+                    select.innerHTML = '<option value="">Select a model...</option>';
+                    
+                    // Add models
+                    models.forEach((model, index) => {
+                        debugInfo.innerHTML += `<br>➕ Adding model ${index + 1}: ${model}`;
+                        const option = document.createElement('option');
+                        option.value = model;
+                        option.textContent = model;
+                        select.appendChild(option);
+                    });
+                    
+                    modelCount.textContent = models.length;
+                    debugInfo.innerHTML += '<br>✅ Models loaded successfully!';
+                } else {
+                    const errorText = await response.text();
+                    debugInfo.innerHTML += `<br>❌ API error: ${errorText}`;
+                }
+            } catch (error) {
+                debugInfo.innerHTML += `<br>❌ Error: ${error.message}`;
+                console.error('Error loading models:', error);
+            }
+        }
+        
+        function clearModels() {
+            const select = document.getElementById('test-model-select');
+            const modelCount = document.getElementById('model-count');
+            select.innerHTML = '<option value="">No models loaded</option>';
+            modelCount.textContent = '0';
+            document.getElementById('debug-info').innerHTML = 'Models cleared';
+        }
+        
+        // Load models on page load
+        window.addEventListener('load', loadModels);
+    </script>
+</body>
+</html> 

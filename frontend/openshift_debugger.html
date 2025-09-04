@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenShift SRE Debugger - AI Ultimate Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .status-healthy { color: #10b981; }
+        .status-warning { color: #f59e0b; }
+        .status-error { color: #ef4444; }
+        .status-info { color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                        <span class="text-blue-600 font-bold text-xl">🔧</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold">OpenShift SRE Debugger</h1>
+                        <p class="text-blue-100">AI-Powered Cluster Analysis & Diagnostics</p>
+                    </div>
+                </div>
+                <nav class="flex space-x-6">
+                    <a href="index.html" class="text-blue-100 hover:text-white transition-colors">Main Interface</a>
+                    <a href="model_trainer.html" class="text-blue-100 hover:text-white transition-colors">Model Trainer</a>
+                    <a href="debug_models.html" class="text-blue-100 hover:text-white transition-colors">Debug Models</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <span class="text-blue-600 text-xl">🔍</span>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Cluster Health</h3>
+                        <p class="text-sm text-gray-600">Comprehensive analysis</p>
+                    </div>
+                </div>
+                <button onclick="debugClusterHealth()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+                    Debug Cluster
+                </button>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <span class="text-green-600 text-xl">📊</span>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Operators</h3>
+                        <p class="text-sm text-gray-600">Operator status</p>
+                    </div>
+                </div>
+                <button onclick="analyzeOperators()" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors">
+                    Analyze Operators
+                </button>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <span class="text-purple-600 text-xl">🖥️</span>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Nodes</h3>
+                        <p class="text-sm text-gray-600">Node status & taints</p>
+                    </div>
+                </div>
+                <button onclick="analyzeNodes()" class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors">
+                    Analyze Nodes
+                </button>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                        <span class="text-red-600 text-xl">📦</span>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Pods</h3>
+                        <p class="text-sm text-gray-600">Scheduling issues</p>
+                    </div>
+                </div>
+                <button onclick="analyzePods()" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors">
+                    Analyze Pods
+                </button>
+            </div>
+        </div>
+
+        <!-- Analysis Interface -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Input Panel -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">🔧 Debug Configuration</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Must-Gather Path</label>
+                            <input type="text" id="mustGatherPath" placeholder="/path/to/must-gather" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Analysis Type</label>
+                            <select id="analysisType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="cluster_health">Cluster Health (Comprehensive)</option>
+                                <option value="operators">Cluster Operators</option>
+                                <option value="nodes">Node Status & Taints</option>
+                                <option value="etcd">etcd Health</option>
+                                <option value="pods">Pod Scheduling</option>
+                                <option value="network">Network Issues</option>
+                                <option value="storage">Storage Issues</option>
+                                <option value="security">Security Issues</option>
+                                <option value="performance">Performance Issues</option>
+                                <option value="report">Comprehensive Report</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Quick Actions</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="quickDebug()" class="bg-blue-600 text-white py-2 px-3 rounded-md text-sm hover:bg-blue-700 transition-colors">
+                                    Quick Debug
+                                </button>
+                                <button onclick="comprehensiveReport()" class="bg-green-600 text-white py-2 px-3 rounded-md text-sm hover:bg-green-700 transition-colors">
+                                    Full Report
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <button onclick="startAnalysis()" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-md hover:from-blue-700 hover:to-purple-700 transition-all font-semibold">
+                                🚀 Start Analysis
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis History -->
+                <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">📋 Recent Analysis</h3>
+                    <div id="analysisHistory" class="space-y-2">
+                        <div class="text-sm text-gray-600">No recent analysis</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold text-gray-800">📊 Analysis Results</h2>
+                        <div class="flex space-x-2">
+                            <button onclick="exportResults()" class="bg-gray-600 text-white py-2 px-3 rounded-md text-sm hover:bg-gray-700 transition-colors">
+                                Export
+                            </button>
+                            <button onclick="clearResults()" class="bg-red-600 text-white py-2 px-3 rounded-md text-sm hover:bg-red-700 transition-colors">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Status Indicators -->
+                    <div id="statusIndicators" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 hidden">
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div class="flex items-center space-x-2">
+                                <span class="status-healthy text-xl">✅</span>
+                                <div>
+                                    <div class="font-semibold text-green-800">Healthy</div>
+                                    <div class="text-sm text-green-600" id="healthyCount">0</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <div class="flex items-center space-x-2">
+                                <span class="status-warning text-xl">⚠️</span>
+                                <div>
+                                    <div class="font-semibold text-yellow-800">Warning</div>
+                                    <div class="text-sm text-yellow-600" id="warningCount">0</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <div class="flex items-center space-x-2">
+                                <span class="status-error text-xl">❌</span>
+                                <div>
+                                    <div class="font-semibold text-red-800">Error</div>
+                                    <div class="text-sm text-red-600" id="errorCount">0</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <div class="flex items-center space-x-2">
+                                <span class="status-info text-xl">ℹ️</span>
+                                <div>
+                                    <div class="font-semibold text-blue-800">Info</div>
+                                    <div class="text-sm text-blue-600" id="infoCount">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Content -->
+                    <div id="resultsContent" class="space-y-4">
+                        <div class="text-center text-gray-500 py-12">
+                            <div class="text-4xl mb-4">🔧</div>
+                            <h3 class="text-lg font-semibold mb-2">OpenShift SRE Debugger</h3>
+                            <p class="text-sm">Enter a must-gather path and select analysis type to begin debugging</p>
+                        </div>
+                    </div>
+
+                    <!-- Loading Indicator -->
+                    <div id="loadingIndicator" class="hidden text-center py-8">
+                        <div class="inline-flex items-center space-x-2">
+                            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                            <span class="text-gray-600">Analyzing cluster...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Sections -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            <!-- Issues Panel -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">🚨 Issues Identified</h3>
+                <div id="issuesList" class="space-y-3">
+                    <div class="text-gray-500 text-sm">No issues identified yet</div>
+                </div>
+            </div>
+
+            <!-- Root Causes Panel -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">🧠 Root Cause Analysis</h3>
+                <div id="rootCausesList" class="space-y-3">
+                    <div class="text-gray-500 text-sm">No root causes identified yet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Remediation Panel -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-8">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">🔧 Remediation Suggestions</h3>
+            <div id="remediationList" class="space-y-3">
+                <div class="text-gray-500 text-sm">No remediation suggestions yet</div>
+            </div>
+        </div>
+
+        <!-- Log Evidence Panel -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-8">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">📁 Key Log Evidence</h3>
+            <div id="logEvidenceList" class="space-y-2">
+                <div class="text-gray-500 text-sm">No log evidence identified yet</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold">OpenShift SRE Debugger</h3>
+                    <p class="text-gray-400 text-sm">AI-Powered Cluster Analysis & Diagnostics</p>
+                </div>
+                <div class="text-sm text-gray-400">
+                    Powered by AI Ultimate Assistant
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Global variables
+        let currentAnalysis = null;
+        let analysisHistory = [];
+
+        // Initialize the interface
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('OpenShift SRE Debugger initialized');
+        });
+
+        // Quick action functions
+        function debugClusterHealth() {
+            document.getElementById('analysisType').value = 'cluster_health';
+            startAnalysis();
+        }
+
+        function analyzeOperators() {
+            document.getElementById('analysisType').value = 'operators';
+            startAnalysis();
+        }
+
+        function analyzeNodes() {
+            document.getElementById('analysisType').value = 'nodes';
+            startAnalysis();
+        }
+
+        function analyzePods() {
+            document.getElementById('analysisType').value = 'pods';
+            startAnalysis();
+        }
+
+        function quickDebug() {
+            document.getElementById('analysisType').value = 'cluster_health';
+            if (!document.getElementById('mustGatherPath').value) {
+                document.getElementById('mustGatherPath').value = '/tmp/must-gather';
+            }
+            startAnalysis();
+        }
+
+        function comprehensiveReport() {
+            document.getElementById('analysisType').value = 'report';
+            startAnalysis();
+        }
+
+        // Main analysis function
+        async function startAnalysis() {
+            const path = document.getElementById('mustGatherPath').value;
+            const analysisType = document.getElementById('analysisType').value;
+
+            if (!path) {
+                alert('Please enter a must-gather path');
+                return;
+            }
+
+            showLoading();
+            clearResults();
+
+            try {
+                const message = generateAnalysisMessage(analysisType, path);
+                const response = await sendAnalysisRequest(message);
+                
+                if (response) {
+                    displayResults(response);
+                    addToHistory(analysisType, path);
+                }
+            } catch (error) {
+                console.error('Analysis error:', error);
+                showError('Analysis failed: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Generate analysis message based on type
+        function generateAnalysisMessage(analysisType, path) {
+            const messages = {
+                'cluster_health': `Debug cluster health from must-gather path ${path}`,
+                'operators': `Analyze cluster operators from must-gather path ${path}`,
+                'nodes': `Check node status from must-gather path ${path}`,
+                'etcd': `Analyze etcd health from must-gather path ${path}`,
+                'pods': `Check pod scheduling issues from must-gather path ${path}`,
+                'network': `Analyze network connectivity from must-gather path ${path}`,
+                'storage': `Analyze storage issues from must-gather path ${path}`,
+                'security': `Analyze security issues from must-gather path ${path}`,
+                'performance': `Analyze performance issues from must-gather path ${path}`,
+                'report': `Generate comprehensive report from must-gather path ${path}`
+            };
+            return messages[analysisType] || messages['cluster_health'];
+        }
+
+        // Send analysis request to backend
+        async function sendAnalysisRequest(message) {
+            const response = await fetch('/api/agent/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    timestamp: new Date().toISOString()
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        }
+
+        // Display analysis results
+        function displayResults(response) {
+            const resultsContent = document.getElementById('resultsContent');
+            const responseText = response.response || 'No response received';
+
+            // Parse and structure the response
+            const sections = parseResponse(responseText);
+            
+            // Update status indicators
+            updateStatusIndicators(sections);
+            
+            // Display main results
+            resultsContent.innerHTML = formatResults(sections);
+            
+            // Update specific panels
+            updateIssuesPanel(sections.issues || []);
+            updateRootCausesPanel(sections.rootCauses || []);
+            updateRemediationPanel(sections.remediation || []);
+            updateLogEvidencePanel(sections.evidence || []);
+        }
+
+        // Parse response into sections
+        function parseResponse(responseText) {
+            const sections = {
+                clusterHealth: '',
+                issues: [],
+                rootCauses: [],
+                remediation: [],
+                evidence: []
+            };
+
+            // Extract sections using regex patterns
+            const clusterHealthMatch = responseText.match(/## 📊 \*\*Cluster Health Assessment\*\*([\s\S]*?)(?=## 🚨|## 🧠|## 🔧|## 📁|$)/);
+            if (clusterHealthMatch) {
+                sections.clusterHealth = clusterHealthMatch[1].trim();
+            }
+
+            // Extract issues
+            const issuesMatch = responseText.match(/## 🚨 \*\*Issues Identified\*\*([\s\S]*?)(?=## 🧠|## 🔧|## 📁|$)/);
+            if (issuesMatch) {
+                sections.issues = extractListItems(issuesMatch[1]);
+            }
+
+            // Extract root causes
+            const rootCausesMatch = responseText.match(/## 🧠 \*\*Root Cause Analysis\*\*([\s\S]*?)(?=## 🔧|## 📁|$)/);
+            if (rootCausesMatch) {
+                sections.rootCauses = extractListItems(rootCausesMatch[1]);
+            }
+
+            // Extract remediation
+            const remediationMatch = responseText.match(/## 🔧 \*\*Remediation Suggestions\*\*([\s\S]*?)(?=## 📁|$)/);
+            if (remediationMatch) {
+                sections.remediation = extractListItems(remediationMatch[1]);
+            }
+
+            // Extract evidence
+            const evidenceMatch = responseText.match(/## 📁 \*\*Key Log Evidence\*\*([\s\S]*?)$/);
+            if (evidenceMatch) {
+                sections.evidence = extractListItems(evidenceMatch[1]);
+            }
+
+            return sections;
+        }
+
+        // Extract list items from text
+        function extractListItems(text) {
+            const items = [];
+            const lines = text.split('\n');
+            for (const line of lines) {
+                const match = line.match(/^\d+\.\s*(.+)$/);
+                if (match) {
+                    items.push(match[1].trim());
+                }
+            }
+            return items;
+        }
+
+        // Format results for display
+        function formatResults(sections) {
+            let html = '<div class="space-y-6">';
+            
+            if (sections.clusterHealth) {
+                html += `
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 class="font-semibold text-blue-800 mb-2">📊 Cluster Health Assessment</h4>
+                        <div class="text-blue-700 whitespace-pre-line">${sections.clusterHealth}</div>
+                    </div>
+                `;
+            }
+
+            return html + '</div>';
+        }
+
+        // Update status indicators
+        function updateStatusIndicators(sections) {
+            const indicators = document.getElementById('statusIndicators');
+            indicators.classList.remove('hidden');
+
+            // Count different types of issues
+            const healthyCount = sections.clusterHealth?.includes('✅') ? 1 : 0;
+            const warningCount = (sections.issues?.filter(i => i.includes('⚠️')).length || 0);
+            const errorCount = (sections.issues?.filter(i => i.includes('❌')).length || 0);
+            const infoCount = (sections.issues?.filter(i => i.includes('ℹ️')).length || 0);
+
+            document.getElementById('healthyCount').textContent = healthyCount;
+            document.getElementById('warningCount').textContent = warningCount;
+            document.getElementById('errorCount').textContent = errorCount;
+            document.getElementById('infoCount').textContent = infoCount;
+        }
+
+        // Update issues panel
+        function updateIssuesPanel(issues) {
+            const issuesList = document.getElementById('issuesList');
+            if (issues.length === 0) {
+                issuesList.innerHTML = '<div class="text-green-600 text-sm">✅ No issues identified</div>';
+                return;
+            }
+
+            issuesList.innerHTML = issues.map(issue => 
+                `<div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div class="flex items-start space-x-2">
+                        <span class="status-error text-lg">🚨</span>
+                        <div class="text-red-800 text-sm">${issue}</div>
+                    </div>
+                </div>`
+            ).join('');
+        }
+
+        // Update root causes panel
+        function updateRootCausesPanel(rootCauses) {
+            const rootCausesList = document.getElementById('rootCausesList');
+            if (rootCauses.length === 0) {
+                rootCausesList.innerHTML = '<div class="text-green-600 text-sm">✅ No root causes identified</div>';
+                return;
+            }
+
+            rootCausesList.innerHTML = rootCauses.map(cause => 
+                `<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <div class="flex items-start space-x-2">
+                        <span class="status-warning text-lg">🧠</span>
+                        <div class="text-yellow-800 text-sm">${cause}</div>
+                    </div>
+                </div>`
+            ).join('');
+        }
+
+        // Update remediation panel
+        function updateRemediationPanel(remediation) {
+            const remediationList = document.getElementById('remediationList');
+            if (remediation.length === 0) {
+                remediationList.innerHTML = '<div class="text-green-600 text-sm">✅ No remediation needed</div>';
+                return;
+            }
+
+            remediationList.innerHTML = remediation.map(step => 
+                `<div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div class="flex items-start space-x-2">
+                        <span class="status-info text-lg">🔧</span>
+                        <div class="text-blue-800 text-sm">${step}</div>
+                    </div>
+                </div>`
+            ).join('');
+        }
+
+        // Update log evidence panel
+        function updateLogEvidencePanel(evidence) {
+            const logEvidenceList = document.getElementById('logEvidenceList');
+            if (evidence.length === 0) {
+                logEvidenceList.innerHTML = '<div class="text-gray-500 text-sm">No log evidence identified</div>';
+                return;
+            }
+
+            logEvidenceList.innerHTML = evidence.map(item => 
+                `<div class="bg-gray-50 border border-gray-200 rounded-lg p-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-600">📁</span>
+                        <div class="text-gray-700 text-sm font-mono">${item}</div>
+                    </div>
+                </div>`
+            ).join('');
+        }
+
+        // Add to analysis history
+        function addToHistory(analysisType, path) {
+            const history = {
+                type: analysisType,
+                path: path,
+                timestamp: new Date().toLocaleString()
+            };
+            
+            analysisHistory.unshift(history);
+            if (analysisHistory.length > 5) {
+                analysisHistory = analysisHistory.slice(0, 5);
+            }
+            
+            updateHistoryDisplay();
+        }
+
+        // Update history display
+        function updateHistoryDisplay() {
+            const historyDiv = document.getElementById('analysisHistory');
+            if (analysisHistory.length === 0) {
+                historyDiv.innerHTML = '<div class="text-sm text-gray-600">No recent analysis</div>';
+                return;
+            }
+
+            historyDiv.innerHTML = analysisHistory.map(item => 
+                `<div class="bg-gray-50 rounded-lg p-2 text-sm">
+                    <div class="font-medium text-gray-800">${item.type.replace('_', ' ').toUpperCase()}</div>
+                    <div class="text-gray-600">${item.path}</div>
+                    <div class="text-gray-500 text-xs">${item.timestamp}</div>
+                </div>`
+            ).join('');
+        }
+
+        // Utility functions
+        function showLoading() {
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingIndicator').classList.add('hidden');
+        }
+
+        function clearResults() {
+            document.getElementById('resultsContent').innerHTML = `
+                <div class="text-center text-gray-500 py-12">
+                    <div class="text-4xl mb-4">🔧</div>
+                    <h3 class="text-lg font-semibold mb-2">OpenShift SRE Debugger</h3>
+                    <p class="text-sm">Enter a must-gather path and select analysis type to begin debugging</p>
+                </div>
+            `;
+            document.getElementById('statusIndicators').classList.add('hidden');
+            document.getElementById('issuesList').innerHTML = '<div class="text-gray-500 text-sm">No issues identified yet</div>';
+            document.getElementById('rootCausesList').innerHTML = '<div class="text-gray-500 text-sm">No root causes identified yet</div>';
+            document.getElementById('remediationList').innerHTML = '<div class="text-gray-500 text-sm">No remediation suggestions yet</div>';
+            document.getElementById('logEvidenceList').innerHTML = '<div class="text-gray-500 text-sm">No log evidence identified yet</div>';
+        }
+
+        function showError(message) {
+            document.getElementById('resultsContent').innerHTML = `
+                <div class="text-center text-red-500 py-12">
+                    <div class="text-4xl mb-4">❌</div>
+                    <h3 class="text-lg font-semibold mb-2">Analysis Error</h3>
+                    <p class="text-sm">${message}</p>
+                </div>
+            `;
+        }
+
+        function exportResults() {
+            if (!currentAnalysis) {
+                alert('No results to export');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(currentAnalysis, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'openshift-debug-report.json';
+            link.click();
+        }
+    </script>
+</body>
+</html> 
